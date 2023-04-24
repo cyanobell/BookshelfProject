@@ -155,7 +155,7 @@ function checkIsValidISBN(isbn_str) {
     return false;
   }
   //現状古い規格は非対応
-  if (isbn_str[0] != '9' && isbn_str[0] != '7') {
+  if (isbn_str[0] != '9' && isbn_str[1] != '7') {
     return false;
   }
   const check_digit = parseInt(isbn_str.slice(-1)); // バーコードからチェックディジットを抽出する
