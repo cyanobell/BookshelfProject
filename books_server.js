@@ -16,7 +16,6 @@ const sess = {
   saveUninitialized: false,
 }
 const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
-const spl_pass2 = "Server_password_1";
 const app = express();
 const connection = mysql.createConnection({
   host: 'localhost',
@@ -44,12 +43,21 @@ if (app.get('env') === 'production') {
 
 //open home
 app.get('/home', (req, res) => {
-  if (req.session.username != undefined) {
+  if (req.session.username !== undefined) {
     console.log(req.session.username + ' is home');
     res.sendFile(path.join(__dirname, crientDirectry, 'home.html'));
   } else {
     res.redirect('/');
   }
+});
+
+//logout
+app.get('/logout', (req, res) => {
+	req.session.regenerate((err) => {
+	  req.session.user_id = undefined;
+	  req.session.username = undefined;
+    res.redirect('/');
+	});
 });
 
 //open index
@@ -61,6 +69,7 @@ app.get('/', (req, res) => {
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, crientDirectry, 'login.html'));
 });
+
 
 //posted logininput 
 app.post('/login', (req, res) => {
