@@ -133,20 +133,36 @@ function IsbnInputArea({
     onClick: submitOnClick
   }, "Add"));
 }
-function BookAddState({
-  inputingIsbn,
-  submitOnClick,
-  inputOnChange,
-  books
-}) {
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(IsbnInputArea, {
-    inputingIsbn: inputingIsbn,
-    submitOnClick: submitOnClick,
-    inputOnChange: inputOnChange
-  }), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ShowBooks, {
-    books: books,
-    bookButton: id => ""
-  }));
+class BookAddState extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      inputingIsbn: ""
+    };
+  }
+  render() {
+    const {
+      submitOnClick,
+      books
+    } = this.props;
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(IsbnInputArea, {
+      inputingIsbn: this.state.inputingIsbn,
+      submitOnClick: () => {
+        submitOnClick(this.state.inputingIsbn);
+        this.setState({
+          inputingIsbn: ""
+        });
+      },
+      inputOnChange: e => {
+        this.setState({
+          inputingIsbn: e.target.value.replace(/[^0-9]/g, "")
+        });
+      }
+    }), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ShowBooks, {
+      books: books,
+      bookButton: id => ""
+    }));
+  }
 }
 function BookReadingChangeState({
   books,
@@ -370,13 +386,7 @@ class Bookshelf extends React.Component {
           });
         case 1:
           return /*#__PURE__*/React.createElement(BookAddState, {
-            inputingIsbn: this.state.inputingIsbn,
-            submitOnClick: () => this.registerIsbn(this.state.inputingIsbn),
-            inputOnChange: e => {
-              this.setState({
-                inputingIsbn: e.target.value.replace(/[^0-9]/g, "")
-              });
-            },
+            submitOnClick: inputedIsbn => this.registerIsbn(inputedIsbn),
             books: this.state.books
           });
         case 2:

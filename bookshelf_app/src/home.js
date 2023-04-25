@@ -124,22 +124,30 @@ function IsbnInputArea({ inputingIsbn, inputOnChange, submitOnClick }) {
     );
 }
 
-function BookAddState({ inputingIsbn, submitOnClick, inputOnChange, books }) {
-    return (
+class BookAddState extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            inputingIsbn: "",
+        };
+    }
+    render() {
+      const { submitOnClick, books } = this.props;
+  
+      return (
         <div>
-            <hr></hr>
-            <IsbnInputArea
-                inputingIsbn={inputingIsbn}
-                submitOnClick={submitOnClick}
-                inputOnChange={inputOnChange} />
-            <hr></hr>
-            <ShowBooks
-                books={books}
-                bookButton={(id) => ""}
-            />
+          <hr></hr>
+          <IsbnInputArea
+            inputingIsbn={this.state.inputingIsbn}
+            submitOnClick={() => {submitOnClick(this.state.inputingIsbn); this.setState({ inputingIsbn:""});}}
+            inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
+          />
+          <hr></hr>
+          <ShowBooks books={books} bookButton={(id) => ""} />
         </div>
-    );
-}
+      );
+    }
+  }
 
 function BookReadingChangeState({ books, changeReadState }) {
     const bookButton = (index) => {
@@ -315,9 +323,7 @@ class Bookshelf extends React.Component {
                 case 1:
                     return (
                         <BookAddState
-                            inputingIsbn={this.state.inputingIsbn}
-                            submitOnClick={() => this.registerIsbn(this.state.inputingIsbn)}
-                            inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
+                            submitOnClick={(inputedIsbn) => this.registerIsbn(inputedIsbn)}
                             books={this.state.books}
                         />
                     );
