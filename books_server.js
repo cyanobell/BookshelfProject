@@ -53,6 +53,7 @@ app.get('/home', (req, res) => {
 
 //logout
 app.get('/logout', (req, res) => {
+  console.log(req.session.username  + ' is logout');
 	req.session.regenerate((err) => {
 	  req.session.user_id = undefined;
 	  req.session.username = undefined;
@@ -82,8 +83,6 @@ app.post('/login', (req, res) => {
         req.session.regenerate((err) => {
           req.session.user_id = user.id;
           req.session.username = user.name;
-          console.log("login success");
-          console.log(req.session);
           res.json({ text: 'success' });
         });
         console.log(user.name + ' is login');
@@ -145,12 +144,10 @@ app.post('/register', (req, res) => {
 
 //book api
 //book show
-app.post('/api/get_have_books', (req, res) => {
-  console.log(req.session);
+app.get('/api/get_have_books', (req, res) => {
   connection.query(
     'SELECT * FROM books WHERE user_id = ?', [req.session.user_id],
     (error, books) => {
-      console.log(books);
       res.json(books);
     }
   );
@@ -212,7 +209,6 @@ app.post('/api/register_book', (req, res) => {
           (error, results) => {
             connection.query("SELECT last_insert_id()",
               (error, results) => {
-                console.log(results[0]['last_insert_id()']);
                 res.json({
                   text: 'success',
                   book: {
@@ -304,11 +300,10 @@ app.get('/shared_books/:shared_id', (req, res) => {
 
 //show shared books
 app.get('/api/get_shared_books/:shared_id', (req, res) => {
-  console.log(req.params.shared_id );
+  console.log(req.params.shared_id + "is watched");
   connection.query(
     'SELECT * FROM books WHERE user_id = ?', [req.params.shared_id ],
     (error, books) => {
-      console.log(books);
       res.json(books);
     }
   );

@@ -217,7 +217,7 @@ class Bookshelf extends React.Component {
     const shared_id = path.split('/')[2];
     try {
       const response = await fetch(`/api/get_have_books`, {
-        method: 'POST'
+        method: 'GET'
       });
       const books = await response.json();
       for (const book of books) {
