@@ -85,7 +85,7 @@ class BookShowState extends React.Component {
             <img src={bookDetail.summary.cover} alt="book_image" width="300" height=" auto" />
             <p>{bookDetail.summary.author}</p>
             <div>{bookCollateralDetailHtml}</div>
-
+            <hr></hr>
         </div>);
     }
     render() {
@@ -102,7 +102,6 @@ class BookShowState extends React.Component {
             <div>
                 <hr></hr>
                 {bookDetailHtml}
-                <hr></hr>
                 <ShowBooks
                     books={books}
                     bookButton={bookButton}
@@ -364,8 +363,12 @@ class Bookshelf extends React.Component {
 
         return (
             <div className="Bookshelf">
-                <button onClick={() => this.shareUrlCopyToCrip()} >本棚を共有</button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'right', padding: 10 }}>
+                    <button onClick={() => this.shareUrlCopyToCrip()} >本棚を共有</button>
+                    <button onClick={() => location.href='/logout'}>ログアウト</button>
+                </div>
                 <div className="ServerResponse">{this.state.server_response}</div>
+                <hr></hr>
                 <ModeSelecter
                     mode_state={this.state.mode_state}
                     onClickShow={() => this.setState({ mode_state: 0, server_response: '' })}
