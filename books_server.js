@@ -82,6 +82,8 @@ app.post('/login', (req, res) => {
         req.session.regenerate((err) => {
           req.session.user_id = user.id;
           req.session.username = user.name;
+          console.log("login success");
+          console.log(req.session);
           res.json({ text: 'success' });
         });
         console.log(user.name + ' is login');
@@ -144,7 +146,7 @@ app.post('/register', (req, res) => {
 //book api
 //book show
 app.post('/api/get_have_books', (req, res) => {
-  console.log(req.session.user_id);
+  console.log(req.session);
   connection.query(
     'SELECT * FROM books WHERE user_id = ?', [req.session.user_id],
     (error, books) => {

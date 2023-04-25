@@ -1,9 +1,11 @@
 'use strict';
 
 const e = React.createElement;
-function getBookJson(isbn) {
+async function getBookJson(isbn) {
   const url = "https://api.openbd.jp/v1/get?isbn=" + isbn;
-  return fetch(url).then(response => response.json()).then(data => {
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
     if (data && data[0]) {
       console.log("call isbn api success");
       return data[0];
@@ -14,14 +16,14 @@ function getBookJson(isbn) {
         }
       };
     }
-  }).catch(error => {
+  } catch (error) {
     console.error("Error occurred while fetching book data:", error);
     return {
       summary: {
-        title: "本の情報を取得できませんでした。isbn:" + isbn
+        title: "本のデータを取得中にエラーが発生しました isbn:" + isbn
       }
     };
-  });
+  }
 }
 function BookButton(props) {
   return /*#__PURE__*/React.createElement("button", {
@@ -30,14 +32,10 @@ function BookButton(props) {
 }
 function ShowBooks({
   books,
-  bookDetails,
   bookButton
 }) {
   if (books.length === 0) {
     return /*#__PURE__*/React.createElement("div", null, "\u672C\u304C\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002");
-  }
-  if (bookDetails.length === 0) {
-    return /*#__PURE__*/React.createElement("div", null, "\u60C5\u5831\u3092\u53D6\u5F97\u4E2D\u3067\u3059\u3002");
   }
   const readStateText = read_state => {
     switch (read_state) {
@@ -50,13 +48,13 @@ function ShowBooks({
     }
   };
   const listItems = books.map((book, index) => {
-    if (bookDetails.length > index) {
+    if (book.detail !== undefined) {
       return /*#__PURE__*/React.createElement("tbody", {
         key: book.id
       }, /*#__PURE__*/React.createElement("tr", {
-        className: "bookDetails"
-      }, /*#__PURE__*/React.createElement("td", null, bookDetails[index].summary.title), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("img", {
-        src: bookDetails[index].summary.cover,
+        className: "bookDetail"
+      }, /*#__PURE__*/React.createElement("td", null, book.detail.summary.title), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("img", {
+        src: book.detail.summary.cover,
         alt: "book_image",
         width: "100",
         height: " auto"
@@ -94,8 +92,7 @@ class BookShowState extends React.Component {
   }
   render() {
     let {
-      books,
-      bookDetails
+      books
     } = this.props;
     let bookDetailHtml;
     const bookButton = index => {
@@ -104,17 +101,16 @@ class BookShowState extends React.Component {
         onClick: () => this.setState({
           index: index
         }),
-        disabled: bookDetails[index].onix === undefined
+        disabled: books[index].detail.onix === undefined
       }, "\u8A73\u7D30\u3092\u898B\u308B");
     };
     //詳細を見るボタンが押されたら、その本の詳細を表示　
     if (this.state.index !== -1) {
-      bookDetailHtml = this.ShowBookDetail(bookDetails[this.state.index]);
+      bookDetailHtml = this.ShowBookDetail(books[this.state.index].detail);
     }
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), bookDetailHtml, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ShowBooks, {
       books: books,
-      bookButton: bookButton,
-      bookDetails: bookDetails
+      bookButton: bookButton
     }));
   }
 }
@@ -132,30 +128,23 @@ class Bookshelf extends React.Component {
     };
     this.loadIsbn();
   }
-  addBookDetails(book) {
-    if (!book) {
-      return;
-    }
-    getBookJson(book.isbn).then(newBookDetail => {
-      this.setState({
-        bookDetails: this.state.bookDetails.concat([newBookDetail])
-      });
-    });
-  }
-  loadIsbn() {
+  async loadIsbn() {
     const path = window.location.pathname;
     const shared_id = path.split('/')[2];
-    fetch(`/api/get_shared_books/${shared_id}`, {
-      method: 'GET'
-    }).then(data => data.json()).then(books => {
-      console.log(books);
+    try {
+      const response = await fetch(`/api/get_shared_books/${shared_id}`, {
+        method: 'GET'
+      });
+      const books = await response.json();
+      for (const book of books) {
+        book.detail = await getBookJson(book.isbn);
+      }
       this.setState({
-        books: this.state.books.concat(books)
+        books: books
       });
-      books.forEach(book => {
-        this.addBookDetails(book);
-      });
-    });
+    } catch (error) {
+      console.error(error);
+    }
   }
   render() {
     return /*#__PURE__*/React.createElement("div", {
@@ -163,8 +152,7 @@ class Bookshelf extends React.Component {
     }, /*#__PURE__*/React.createElement("div", {
       className: "ServerResponse"
     }, this.state.server_response), /*#__PURE__*/React.createElement(BookShowState, {
-      books: this.state.books,
-      bookDetails: this.state.bookDetails
+      books: this.state.books
     }));
   }
 }

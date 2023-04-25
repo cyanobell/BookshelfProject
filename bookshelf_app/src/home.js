@@ -1,35 +1,30 @@
 'use strict';
 const e = React.createElement;
 
-function getBookJson(isbn) {
+async function getBookJson(isbn) {
     const url = "https://api.openbd.jp/v1/get?isbn=" + isbn;
-    return fetch(url)
-        .then((response) => response.json())
-        .then((data) => {
-            if (data && data[0]) {
-                console.log("call isbn api success");
-                return data[0];
-            } else {
-                return { summary: { title: "本の情報を取得できませんでした。isbn:" + isbn } };
-            }
-        })
-        .catch((error) => {
-            console.error("Error occurred while fetching book data:", error);
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data && data[0]) {
+            console.log("call isbn api success");
+            return data[0];
+        } else {
             return { summary: { title: "本の情報を取得できませんでした。isbn:" + isbn } };
-        });
+        }
+    } catch (error) {
+        console.error("Error occurred while fetching book data:", error);
+        return { summary: { title: "本のデータを取得中にエラーが発生しました isbn:" + isbn } };
+    }
 }
 
 function BookButton(props) {
-    <button onClick={() => props.onClick(book)}>{props.bookButtonText()}</button>
+    return <button onClick={() => props.onClick(book)}>{props.bookButtonText()}</button>;
 }
 
-function ShowBooks({ books, bookDetails, bookButton }) {
+function ShowBooks({ books, bookButton }) {
     if (books.length === 0) {
         return <div>本が登録されていません。</div>;
-    }
-
-    if (bookDetails.length === 0) {
-        return <div>情報を取得中です。</div>;
     }
     const readStateText = (read_state) => {
         switch (read_state) {
@@ -42,28 +37,28 @@ function ShowBooks({ books, bookDetails, bookButton }) {
         }
     }
     const listItems = books.map((book, index) => {
-        if (bookDetails.length > index) {
-          return (
-            <tbody key={book.id}>
-              <tr className="bookDetails">
-                <td>{ bookDetails[index].summary.title}</td>
-                <td><img src={bookDetails[index].summary.cover}
-                    alt="book_image" width="100" height=" auto" /></td>
-                <td>:</td>
-                <td>{readStateText(book.read_state)}</td>
-                <td>{bookButton(index)}</td>
-              </tr>
-            </tbody>
-          );
+        if (book.detail !== undefined) {
+            return (
+                <tbody key={book.id}>
+                    <tr className="bookDetail">
+                        <td>{book.detail.summary.title}</td>
+                        <td><img src={book.detail.summary.cover}
+                            alt="book_image" width="100" height=" auto" /></td>
+                        <td>:</td>
+                        <td>{readStateText(book.read_state)}</td>
+                        <td>{bookButton(index)}</td>
+                    </tr>
+                </tbody>
+            );
         } else {
-          return (
-            <tbody key={book.id}>
-              <tr className="bookDetails"><td></td></tr>
-            </tbody>
-          );
+            return (
+                <tbody key={book.id}>
+                    <tr className="bookDetails"><td></td></tr>
+                </tbody>
+            );
         }
-      });
-      
+
+    });
     return (
         <table>
             {listItems}
@@ -78,11 +73,7 @@ class BookShowState extends React.Component {
             index: -1,
         };
     }
-
     ShowBookDetail(bookDetail) {
-        //いい感じにする
-        console.log(bookDetail);
-
         let bookCollateralDetailHtml;
         if (bookDetail.onix) {
             bookCollateralDetailHtml = bookDetail.onix.CollateralDetail.TextContent.map((textContent, index) => (
@@ -98,14 +89,14 @@ class BookShowState extends React.Component {
         </div>);
     }
     render() {
-        let { books, bookDetails } = this.props;
+        let { books } = this.props;
         let bookDetailHtml;
         const bookButton = (index) => {
-            return (<button type="submit" onClick={() => this.setState({ index: index })} disabled={bookDetails[index].onix === undefined} >詳細を見る</button>);
+            return (<button type="submit" onClick={() => this.setState({ index: index })} disabled={books[index].detail.onix === undefined} >詳細を見る</button>);
         }
         //詳細を見るボタンが押されたら、その本の詳細を表示　
         if (this.state.index !== -1) {
-            bookDetailHtml = this.ShowBookDetail(bookDetails[this.state.index]);
+            bookDetailHtml = this.ShowBookDetail(books[this.state.index].detail);
         }
         return (
             <div>
@@ -115,7 +106,6 @@ class BookShowState extends React.Component {
                 <ShowBooks
                     books={books}
                     bookButton={bookButton}
-                    bookDetails={bookDetails}
                 />
             </div>
         );
@@ -134,7 +124,7 @@ function IsbnInputArea({ inputingIsbn, inputOnChange, submitOnClick }) {
     );
 }
 
-function BookAddState({ inputingIsbn, submitOnClick, inputOnChange, books, bookDetails }) {
+function BookAddState({ inputingIsbn, submitOnClick, inputOnChange, books }) {
     return (
         <div>
             <hr></hr>
@@ -145,14 +135,13 @@ function BookAddState({ inputingIsbn, submitOnClick, inputOnChange, books, bookD
             <hr></hr>
             <ShowBooks
                 books={books}
-                bookDetails={bookDetails}
                 bookButton={(id) => ""}
             />
         </div>
     );
 }
 
-function BookReadingChangeState({ books, bookDetails, changeReadState }) {
+function BookReadingChangeState({ books, changeReadState }) {
     const bookButton = (index) => {
         return (<button type="submit" onClick={() => changeReadState(index)}>読書状態変更</button>);
     }
@@ -160,14 +149,13 @@ function BookReadingChangeState({ books, bookDetails, changeReadState }) {
         <div>
             <ShowBooks
                 books={books}
-                bookDetails={bookDetails}
                 bookButton={bookButton}
             />
         </div>
     );
 }
 
-function BookDeleteState({ books, bookDetails, deleteBook }) {
+function BookDeleteState({ books, deleteBook }) {
     const bookButton = (index) => {
         return (<button type="submit" onClick={() => deleteBook(index)}>本を削除</button>);
     }
@@ -175,7 +163,6 @@ function BookDeleteState({ books, bookDetails, deleteBook }) {
         <div>
             <ShowBooks
                 books={books}
-                bookDetails={bookDetails}
                 bookButton={bookButton}
             />
         </div>
@@ -201,120 +188,122 @@ class Bookshelf extends React.Component {
             server_response: '',
             inputingIsbn: '',
             books: [],
-            bookDetails: [],
             mode_state: 0
         };
         this.loadIsbn();
     }
 
-    addBookDetails(book) {
-        if(!book){
-            return;
+    async loadIsbn() {
+        const path = window.location.pathname;
+        const shared_id = path.split('/')[2];
+        try {
+            const response = await fetch(`/api/get_have_books`, {
+                method: 'POST',
+            });
+            const books = await response.json();
+            for (const book of books) {
+                book.detail = await getBookJson(book.isbn);
+            }
+            this.setState({ books: books });
+        } catch (error) {
+            console.error(error);
         }
-        getBookJson(book.isbn).then((newBookDetail) => {
-            this.setState({ bookDetails: this.state.bookDetails.concat([newBookDetail]) });
-        });
     }
 
-    loadIsbn() {
-        fetch('/api/get_have_books', {
-            method: 'POST',
-        })
-            .then((data) => data.json())
-            .then((books) => {
-                console.log(books);
-                this.setState({ books: this.state.books.concat(books) });
-                books.forEach((book) => {
-                    this.addBookDetails(book);
-                });
-            });
-    };
+    async registerIsbn(inputingIsbn) {
+        try {
+            if (inputingIsbn.length === 0) {
+                this.setState({ server_response: '入力欄が空です。' });
+                return;
+            }
 
-    registerIsbn(inputingIsbn) {
-        if(inputingIsbn.length === 0){
-            this.setState({ server_response: '入力欄が空です。' });
-            return;
+            let send_data = { isbn: inputingIsbn };
+            const response = await fetch('/api/register_book', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(send_data),
+            });
+
+            const json = await response.json();
+            if (json.text === 'success') {
+                this.setState({ server_response: '登録できました！' });
+                this.setState({ inputingIsbn: '' });
+                json.book.detail = await getBookJson(json.book.isbn);
+                this.setState({ books: this.state.books.concat([json.book]) });
+            } else if (json.text === 'already registered') {
+                this.setState({ server_response: 'その本はすでに登録されています。' });
+            } else if (json.text === 'isbn is too old or wrong.') {
+                this.setState({ server_response: 'ISBNコードが間違っているか、対応していない形式です。' });
+            } else {
+                this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+            }
+        } catch (error) {
+            console.error(error);
+            this.setState({ server_response: 'エラーが発生しました。' });
         }
-        let send_data = { isbn: inputingIsbn };
-        fetch('/api/register_book', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(send_data),
-        })
-            .then((data) => data.json())
-            .then((json) => {
-                if (json.text === 'success') {
-                    this.setState({ server_response: '登録できました！' });
-                    this.setState({ inputingIsbn: '' });
-                    this.setState({ books: this.state.books.concat([json.book]) });
-                    this.addBookDetails(json.book);
-                } else if (json.text === 'already registered') {
-                    this.setState({ server_response: 'その本はすでに登録されています。' });
-                } else if (json.text === 'isbn is too old or wrong.') {
-                    this.setState({ server_response: 'ISBNコードが間違っているか、対応していない形式です。' });
-                } else {
-                    this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
-                }
+    }
+
+    async changeReadState(index, new_read_state) {
+        try {
+            let send_data = { book: this.state.books[index], new_read_state: new_read_state };
+            const response = await fetch('/api/change_read_state', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(send_data),
             });
 
-    };
+            const json = await response.json();
+            console.log(json.text);
+            if (json.text === 'success') {
+                this.setState({ server_response: '変更できました！' });
+                this.setState({ inputingIsbn: '' });
+                const { books } = this.state;
+                const newBooks = [...books];
+                newBooks[index] = { ...books[index], read_state: new_read_state };
+                this.setState({ books: newBooks });
+            } else {
+                this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+            }
+        } catch (error) {
+            console.error(error);
+            this.setState({ server_response: 'エラーが発生しました。' });
+        }
+    }
 
-    changeReadState(index, new_read_state) {
-        let send_data = { book: this.state.books[index], new_read_state: new_read_state };
-        fetch('/api/change_read_state', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(send_data),
-        })
-            .then((data) => data.json())
-            .then((json) => {
-                console.log(json.text);
-                if (json.text === 'success') {
-                    this.setState({ server_response: '変更できました！' });
-                    this.setState({ inputingIsbn: '' });
-                    const { books } = this.state;
-                    const newBooks = [...books];
-                    newBooks[index] = { ...books[index], read_state: new_read_state };
-                    this.setState({ books: newBooks });
-                } else {
-                    this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
-                }
+    async deleteBook(index) {
+        try {
+            let send_data = { book: this.state.books[index] };
+            const response = await fetch('/api/delete_book', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(send_data),
             });
 
-    };
+            const json = await response.json();
+            console.log(json.text);
+            if (json.text === 'success') {
+                this.setState({ server_response: this.state.books[index].detail.summary.title + ' を削除しました。' });
+                this.setState({
+                    books: this.state.books.filter((book, findex) => findex !== index),
+                });
+            } else {
+                this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+            }
+        } catch (error) {
+            console.error(error);
+            this.setState({ server_response: 'エラーが発生しました。' });
+        }
+    }
 
-    deleteBook(index) {
-        let send_data = { book: this.state.books[index] };
-        fetch('/api/delete_book', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(send_data),
-        })
-            .then((data) => data.json())
-            .then((json) => {
-                console.log(json.text);
-                if (json.text === 'success') {
-                    this.setState({ server_response: this.state.bookDetails[index].summary.title + ' を削除しました。' });
-                    this.setState({
-                        books: this.state.books.filter((book, findex) => findex !== index),
-                        bookDetails: this.state.bookDetails.filter((bookDetail, findex) => findex !== index),
-                    });
-                } else {
-                    this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
-                }
-            });
-
-    };
-    // 
     render() {
         const modeStateHtml = (mode_state) => {
             switch (mode_state) {
@@ -322,22 +311,19 @@ class Bookshelf extends React.Component {
                     return (
                         <BookShowState
                             books={this.state.books}
-                            bookDetails={this.state.bookDetails}
                         />);
                 case 1:
                     return (
                         <BookAddState
                             inputingIsbn={this.state.inputingIsbn}
                             submitOnClick={() => this.registerIsbn(this.state.inputingIsbn)}
-                            inputOnChange={(e) =>{ this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") })}}
+                            inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
                             books={this.state.books}
-                            bookDetails={this.state.bookDetails}
                         />
                     );
                 case 2:
                     return (<BookReadingChangeState
                         books={this.state.books}
-                        bookDetails={this.state.bookDetails}
                         changeReadState={(index) => {
                             let read_state = this.state.books[index].read_state;
                             let new_read_state = read_state < 2 ? read_state + 1 : 0;
@@ -347,21 +333,20 @@ class Bookshelf extends React.Component {
                 case 3:
                     return (<BookDeleteState
                         books={this.state.books}
-                        bookDetails={this.state.bookDetails}
                         deleteBook={(index) => { this.deleteBook(index) }}
                     />);
             }
-        };
+        }
 
         return (
             <div className="Bookshelf">
                 <div className="ServerResponse">{this.state.server_response}</div>
                 <ModeSelecter
                     mode_state={this.state.mode_state}
-                    onClickShow={() => this.setState({ mode_state: 0 })}
-                    onClickAdd={() => this.setState({ mode_state: 1 })}
-                    onClickChange={() => this.setState({ mode_state: 2 })}
-                    onClickDelete={() => this.setState({ mode_state: 3 })}
+                    onClickShow={() => this.setState({ mode_state: 0 ,server_response:'' })}
+                    onClickAdd={() => this.setState({ mode_state: 1 ,server_response:''})}
+                    onClickChange={() => this.setState({ mode_state: 2,server_response:'' })}
+                    onClickDelete={() => this.setState({ mode_state: 3,server_response:'' })}
                 />
                 {modeStateHtml(this.state.mode_state)}
             </div>
