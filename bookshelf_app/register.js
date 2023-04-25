@@ -95,5 +95,5 @@ var Register = function (_React$Component) {
     return Register;
 }(React.Component);
 
-var domContainer = document.querySelector('#register');
-ReactDOM.render(React.createElement(Register, null), domContainer);
+var root = document.getElementById('register');
+ReactDOM.createRoot(root).render(React.createElement(Register, null));

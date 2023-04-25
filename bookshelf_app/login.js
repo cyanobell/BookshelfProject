@@ -94,5 +94,5 @@ var Login = function (_React$Component) {
   return Login;
 }(React.Component);
 
-var domContainer = document.querySelector('#login');
-ReactDOM.render(React.createElement(Login, null), domContainer);
+var root = document.getElementById('login');
+ReactDOM.createRoot(root).render(React.createElement(Login, null));

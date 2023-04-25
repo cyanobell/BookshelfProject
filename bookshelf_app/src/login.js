@@ -45,12 +45,9 @@ class Login extends React.Component {
         </form>
 
       </div>
-
     );
   }
-
 }
 
-
-const domContainer = document.querySelector('#login');
-ReactDOM.render(<Login />, domContainer);
+const root = document.getElementById('login');
+ReactDOM.createRoot(root).render(<Login />);

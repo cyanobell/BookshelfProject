@@ -167,4 +167,6 @@ class Bookshelf extends React.Component {
         );
     }
 }
-ReactDOM.render(<Bookshelf />, document.querySelector('#book_shelf'));
+
+const root = document.getElementById('book_shelf');
+ReactDOM.createRoot(root).render(<Bookshelf />);

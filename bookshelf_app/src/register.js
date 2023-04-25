@@ -50,6 +50,5 @@ class Register extends React.Component {
 
 }
 
-
-const domContainer = document.querySelector('#register');
-ReactDOM.render(<Register />, domContainer);
+const root = document.getElementById('register');
+ReactDOM.createRoot(root).render(<Register />);

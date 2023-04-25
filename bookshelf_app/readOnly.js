@@ -284,4 +284,5 @@ var Bookshelf = function (_React$Component2) {
     return Bookshelf;
 }(React.Component);
 
-ReactDOM.render(React.createElement(Bookshelf, null), document.querySelector('#book_shelf'));
+var root = document.getElementById('book_shelf');
+ReactDOM.createRoot(root).render(React.createElement(Bookshelf, null));
