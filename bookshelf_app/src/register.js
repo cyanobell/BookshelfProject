@@ -47,7 +47,6 @@ class Register extends React.Component {
             </div>
         );
     }
-
 }
 
 const root = document.getElementById('register');

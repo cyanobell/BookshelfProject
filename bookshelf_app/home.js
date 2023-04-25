@@ -28,6 +28,7 @@ function getBookJson(isbn) {
         return { summary: { title: "本の情報を取得できませんでした。isbn:" + isbn } };
     });
 }
+
 function BookButton(props) {
     React.createElement(
         "button",

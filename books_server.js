@@ -70,7 +70,6 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, crientDirectry, 'login.html'));
 });
 
-
 //posted logininput 
 app.post('/login', (req, res) => {
   const in_data = req.body;
@@ -142,8 +141,6 @@ app.post('/register', (req, res) => {
   );
 });
 
-
-
 //book api
 //book show
 app.post('/api/get_have_books', (req, res) => {
@@ -156,7 +153,6 @@ app.post('/api/get_have_books', (req, res) => {
     }
   );
 });
-
 
 function checkIsValidISBN(isbn_str) {
   //ｰ>デバッグ用。どんな番号でも許可するreturn isbn_str.length !== 0;
@@ -304,7 +300,6 @@ app.get('/shared_books/:shared_id', (req, res) => {
   res.sendFile(path.join(__dirname, crientDirectry, 'readOnly.html'));
 });
 
-
 //show shared books
 app.get('/api/get_shared_books/:shared_id', (req, res) => {
   console.log(req.params.shared_id );
@@ -317,10 +312,8 @@ app.get('/api/get_shared_books/:shared_id', (req, res) => {
   );
 });
 
-
 //listen port
 app.listen(port, () => {
   console.log("My app listening on port " + port + " !");
 });
-
 

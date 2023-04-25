@@ -21,6 +21,7 @@ function getBookJson(isbn) {
 function BookButton(props) {
     return <button onClick={() => props.onClick(book)}>{props.bookButtonText()}</button>;
 }
+
 function ShowBooks({ books, bookDetails, bookButton }) {
     if (books.length === 0) {
         return <div>本が登録されていません。</div>;

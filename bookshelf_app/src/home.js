@@ -18,6 +18,7 @@ function getBookJson(isbn) {
             return { summary: { title: "本の情報を取得できませんでした。isbn:" + isbn } };
         });
 }
+
 function BookButton(props) {
     <button onClick={() => props.onClick(book)}>{props.bookButtonText()}</button>
 }
@@ -63,7 +64,6 @@ function ShowBooks({ books, bookDetails, bookButton }) {
         }
       });
       
-
     return (
         <table>
             {listItems}
