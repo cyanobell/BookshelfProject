@@ -143,6 +143,7 @@ app.post('/register', (req, res) => {
 });
 
 
+
 //book api
 //book show
 app.post('/api/get_have_books', (req, res) => {
@@ -298,6 +299,24 @@ app.post('/api/delete_book', (req, res) => {
     );
   });
 });
+
+app.get('/shared_books/:shared_id', (req, res) => {
+  res.sendFile(path.join(__dirname, crientDirectry, 'readOnly.html'));
+});
+
+
+//show shared books
+app.get('/api/get_shared_books/:shared_id', (req, res) => {
+  console.log(req.params.shared_id );
+  connection.query(
+    'SELECT * FROM books WHERE user_id = ?', [req.params.shared_id ],
+    (error, books) => {
+      console.log(books);
+      res.json(books);
+    }
+  );
+});
+
 
 //listen port
 app.listen(port, () => {
