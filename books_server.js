@@ -152,6 +152,9 @@ app.get('/api/get_have_books', (req, res) => {
     }
   );
 });
+app.get('/api/get_user_id', (req, res) => {
+  res.json({ user_id: req.session.user_id });
+});
 
 function checkIsValidISBN(isbn_str) {
   //ｰ>デバッグ用。どんな番号でも許可するreturn isbn_str.length !== 0;

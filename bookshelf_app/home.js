@@ -97,7 +97,6 @@ class BookShowState extends React.Component {
     let bookDetailHtml;
     const bookButton = index => {
       return /*#__PURE__*/React.createElement("button", {
-        type: "submit",
         onClick: () => this.setState({
           index: index
         }),
@@ -170,7 +169,6 @@ function BookReadingChangeState({
 }) {
   const bookButton = index => {
     return /*#__PURE__*/React.createElement("button", {
-      type: "submit",
       onClick: () => changeReadState(index)
     }, "\u8AAD\u66F8\u72B6\u614B\u5909\u66F4");
   };
@@ -185,7 +183,6 @@ function BookDeleteState({
 }) {
   const bookButton = index => {
     return /*#__PURE__*/React.createElement("button", {
-      type: "submit",
       onClick: () => deleteBook(index)
     }, "\u672C\u3092\u524A\u9664");
   };
@@ -229,8 +226,6 @@ class Bookshelf extends React.Component {
     this.loadIsbn();
   }
   async loadIsbn() {
-    const path = window.location.pathname;
-    const shared_id = path.split('/')[2];
     try {
       const response = await fetch(`/api/get_have_books`, {
         method: 'GET'
@@ -293,7 +288,7 @@ class Bookshelf extends React.Component {
     } catch (error) {
       console.error(error);
       this.setState({
-        server_response: 'エラーが発生しました。'
+        server_response: 'サーバーエラーが発生しました。'
       });
     }
   }
@@ -339,7 +334,7 @@ class Bookshelf extends React.Component {
     } catch (error) {
       console.error(error);
       this.setState({
-        server_response: 'エラーが発生しました。'
+        server_response: 'サーバーエラーが発生しました。'
       });
     }
   }
@@ -373,7 +368,30 @@ class Bookshelf extends React.Component {
     } catch (error) {
       console.error(error);
       this.setState({
-        server_response: 'エラーが発生しました。'
+        server_response: 'サーバーエラーが発生しました。'
+      });
+    }
+  }
+  async shareUrlCopyToCrip() {
+    try {
+      const response = await fetch(`/api/get_user_id`, {
+        method: 'GET'
+      });
+      const json = await response.json();
+      console.log(json.user_id);
+      const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        this.setState({
+          server_response: 'クリップボードに共有用URLをコピーしました。'
+        });
+      }, () => {
+        this.setState({
+          server_response: 'URL: ' + shareUrl
+        });
+      });
+    } catch (error) {
+      this.setState({
+        server_response: 'サーバーエラーが発生しました。'
       });
     }
   }
@@ -409,7 +427,9 @@ class Bookshelf extends React.Component {
     };
     return /*#__PURE__*/React.createElement("div", {
       className: "Bookshelf"
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => this.shareUrlCopyToCrip()
+    }, "\u672C\u68DA\u3092\u5171\u6709"), /*#__PURE__*/React.createElement("div", {
       className: "ServerResponse"
     }, this.state.server_response), /*#__PURE__*/React.createElement(ModeSelecter, {
       mode_state: this.state.mode_state,

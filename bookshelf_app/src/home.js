@@ -92,7 +92,7 @@ class BookShowState extends React.Component {
         let { books } = this.props;
         let bookDetailHtml;
         const bookButton = (index) => {
-            return (<button type="submit" onClick={() => this.setState({ index: index })} disabled={books[index].detail.onix === undefined} >詳細を見る</button>);
+            return (<button onClick={() => this.setState({ index: index })} disabled={books[index].detail.onix === undefined} >詳細を見る</button>);
         }
         //詳細を見るボタンが押されたら、その本の詳細を表示　
         if (this.state.index !== -1) {
@@ -132,26 +132,26 @@ class BookAddState extends React.Component {
         };
     }
     render() {
-      const { submitOnClick, books } = this.props;
-  
-      return (
-        <div>
-          <hr></hr>
-          <IsbnInputArea
-            inputingIsbn={this.state.inputingIsbn}
-            submitOnClick={() => {submitOnClick(this.state.inputingIsbn); this.setState({ inputingIsbn:""});}}
-            inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
-          />
-          <hr></hr>
-          <ShowBooks books={books} bookButton={(id) => ""} />
-        </div>
-      );
+        const { submitOnClick, books } = this.props;
+
+        return (
+            <div>
+                <hr></hr>
+                <IsbnInputArea
+                    inputingIsbn={this.state.inputingIsbn}
+                    submitOnClick={() => { submitOnClick(this.state.inputingIsbn); this.setState({ inputingIsbn: "" }); }}
+                    inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
+                />
+                <hr></hr>
+                <ShowBooks books={books} bookButton={(id) => ""} />
+            </div>
+        );
     }
-  }
+}
 
 function BookReadingChangeState({ books, changeReadState }) {
     const bookButton = (index) => {
-        return (<button type="submit" onClick={() => changeReadState(index)}>読書状態変更</button>);
+        return (<button onClick={() => changeReadState(index)}>読書状態変更</button>);
     }
     return (
         <div>
@@ -165,7 +165,7 @@ function BookReadingChangeState({ books, changeReadState }) {
 
 function BookDeleteState({ books, deleteBook }) {
     const bookButton = (index) => {
-        return (<button type="submit" onClick={() => deleteBook(index)}>本を削除</button>);
+        return (<button onClick={() => deleteBook(index)}>本を削除</button>);
     }
     return (
         <div>
@@ -202,8 +202,6 @@ class Bookshelf extends React.Component {
     }
 
     async loadIsbn() {
-        const path = window.location.pathname;
-        const shared_id = path.split('/')[2];
         try {
             const response = await fetch(`/api/get_have_books`, {
                 method: 'GET',
@@ -250,7 +248,7 @@ class Bookshelf extends React.Component {
             }
         } catch (error) {
             console.error(error);
-            this.setState({ server_response: 'エラーが発生しました。' });
+            this.setState({ server_response: 'サーバーエラーが発生しました。' });
         }
     }
 
@@ -280,7 +278,7 @@ class Bookshelf extends React.Component {
             }
         } catch (error) {
             console.error(error);
-            this.setState({ server_response: 'エラーが発生しました。' });
+            this.setState({ server_response: 'サーバーエラーが発生しました。' });
         }
     }
 
@@ -308,7 +306,27 @@ class Bookshelf extends React.Component {
             }
         } catch (error) {
             console.error(error);
-            this.setState({ server_response: 'エラーが発生しました。' });
+            this.setState({ server_response: 'サーバーエラーが発生しました。' });
+        }
+    }
+
+    async shareUrlCopyToCrip() {
+        try {
+            const response = await fetch(`/api/get_user_id`, {
+                method: 'GET',
+            })
+            const json = await response.json();
+            console.log(json.user_id);
+            const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
+            navigator.clipboard.writeText(shareUrl).then(
+                () => {
+                    this.setState({ server_response: 'クリップボードに共有用URLをコピーしました。' });
+                },
+                () => {
+                    this.setState({ server_response: 'URL: ' + shareUrl });
+                });
+        } catch (error) {
+            this.setState({ server_response: 'サーバーエラーが発生しました。' });
         }
     }
 
@@ -346,13 +364,14 @@ class Bookshelf extends React.Component {
 
         return (
             <div className="Bookshelf">
+                <button onClick={() => this.shareUrlCopyToCrip()} >本棚を共有</button>
                 <div className="ServerResponse">{this.state.server_response}</div>
                 <ModeSelecter
                     mode_state={this.state.mode_state}
-                    onClickShow={() => this.setState({ mode_state: 0 ,server_response:'' })}
-                    onClickAdd={() => this.setState({ mode_state: 1 ,server_response:''})}
-                    onClickChange={() => this.setState({ mode_state: 2,server_response:'' })}
-                    onClickDelete={() => this.setState({ mode_state: 3,server_response:'' })}
+                    onClickShow={() => this.setState({ mode_state: 0, server_response: '' })}
+                    onClickAdd={() => this.setState({ mode_state: 1, server_response: '' })}
+                    onClickChange={() => this.setState({ mode_state: 2, server_response: '' })}
+                    onClickDelete={() => this.setState({ mode_state: 3, server_response: '' })}
                 />
                 {modeStateHtml(this.state.mode_state)}
             </div>
