@@ -1,4 +1,5 @@
 const express = require('express');
+const https = require('https');
 const fs = require('fs');
 const bcrypt = require("bcrypt");
 const mysql = require('mysql');
@@ -15,6 +16,10 @@ const sess = {
   resave: false,
   saveUninitialized: false,
 }
+const options = {
+  key: fs.readFileSync('.ssh/localhost.key'),
+  cert: fs.readFileSync('.ssh/localhost.crt')
+};
 const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
 const app = express();
 const connection = mysql.createConnection({
@@ -312,8 +317,7 @@ app.get('/api/get_shared_books/:shared_id', (req, res) => {
   );
 });
 
-//listen port
-app.listen(port, () => {
-  console.log("My app listening on port " + port + " !");
+// start HTTPS server
+https.createServer(options, app).listen(port, function () {
+  console.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
 });
-
