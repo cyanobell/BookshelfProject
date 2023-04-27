@@ -1,6 +1,40 @@
 'use strict';
 
 const e = React.createElement;
+function checkIsValidISBN(isbn) {
+  if (isbn === null) {
+    return false;
+  }
+  const isbn_str = isbn.toString();
+  //現状古い規格は非対応
+  if (isbn_str.length != 13) {
+    return false;
+  }
+  //現状古い規格は非対応
+  if (isbn_str[0] != '9' && isbn_str[1] != '7') {
+    return false;
+  }
+  const check_digit = parseInt(isbn_str.slice(-1)); // バーコードからチェックディジットを抽出する
+  const barcode_digits = isbn_str.slice(0, -1).split(""); // チェックディジットを除いたバーコードの桁を抽出する
+
+  //チェックデジットと照らし合わせる数字を生成
+  let sum = 0;
+  for (let i = 0; i < barcode_digits.length; i++) {
+    if (i % 2 === 0) {
+      sum += parseInt(barcode_digits[i]); // 奇数桁を足す
+    } else {
+      sum += 3 * parseInt(barcode_digits[i]); // 偶数桁を3倍する
+    }
+  }
+
+  //チェックデジットと照らし合わせる
+  if ((sum + check_digit) % 10 === 0) {
+    return true;
+  } else {
+    console.log("Barcode error: " + sum + check_digit);
+    return false;
+  }
+}
 async function getBookJson(isbn) {
   const url = "https://api.openbd.jp/v1/get?isbn=" + isbn;
   try {
@@ -114,23 +148,165 @@ class BookShowState extends React.Component {
   }
 }
 ;
-function IsbnInputArea({
-  inputingIsbn,
-  inputOnChange,
-  submitOnClick
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    className: "form-group"
-  }, /*#__PURE__*/React.createElement("div", null, "ISBN\u30B3\u30FC\u30C9", /*#__PURE__*/React.createElement("input", {
-    type: "text",
-    name: "isbn",
-    value: inputingIsbn,
-    inputMode: "numeric",
-    onChange: inputOnChange
-  }), " "), /*#__PURE__*/React.createElement("button", {
-    type: "submit",
-    onClick: submitOnClick
-  }, "Add"));
+class BarcodeReader extends React.Component {
+  //todo:カメラ切り替え機能の追加
+  //todo:バーコード読み取りAPIの対応幅を広げる
+  constructor(props) {
+    super(props);
+    this.state = {
+      imgSrc: null,
+      readedIsbnValue: null
+    };
+    this.videoRef = React.createRef();
+    this.video = {
+      width: 640,
+      height: 480
+    };
+  }
+  async detectBarcodes(imageData) {
+    try {
+      let barcodes = [];
+      if (typeof BarcodeDetector === "function") {
+        const barcodeDetector = new BarcodeDetector();
+        barcodes = await barcodeDetector.detect(imageData);
+      }
+      //todo:ブラウザがBarcodeDetectorに対応していない場合、別の方法を試す。
+      if (barcodes.length > 0) {
+        return barcodes;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  async detectIsbnCode(imageData) {
+    try {
+      let barcodes = await this.detectBarcodes(imageData);
+      if (barcodes && barcodes.length > 0) {
+        for (const barcode of barcodes) {
+          if (checkIsValidISBN(barcode.rawValue)) {
+            return barcode.rawValue;
+          }
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  async getCameraStream() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      let cameraId = null;
+      devices.forEach(device => {
+        if (device.kind === "videoinput" && device.facingMode === "environment") {
+          cameraId = device.deviceId;
+        }
+      });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId: cameraId
+        }
+      });
+      return stream;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  }
+  async componentDidMount() {
+    const stream = await this.getCameraStream();
+    this.videoRef.current.srcObject = stream;
+    this.videoRef.current.play();
+    const canvas = document.createElement("canvas");
+    canvas.width = this.video.width;
+    canvas.height = this.video.height;
+    console.log(canvas);
+    console.log(this.videoRef.current.videoWidth);
+    const context = canvas.getContext("2d");
+    setInterval(async () => {
+      context.drawImage(this.videoRef.current, 0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      console.log(imageData);
+      const readed_isbn = await this.detectIsbnCode(imageData);
+      if (readed_isbn) {
+        this.setState({
+          readedIsbnValue: readed_isbn
+        });
+      }
+    }, 1000 / 30);
+  }
+  render() {
+    const {
+      onReadSuccess
+    } = this.props;
+    if (this.state.readedIsbnValue) {
+      onReadSuccess(this.state.readedIsbnValue);
+    }
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid black",
+        width: `${this.video.width}px`,
+        height: `${this.video.height}px`,
+        marginBottom: "16px"
+      }
+    }, /*#__PURE__*/React.createElement("video", {
+      ref: this.videoRef,
+      style: {
+        objectFit: "contain",
+        width: "100%",
+        height: "100%"
+      }
+    })));
+  }
+}
+class IsbnInputArea extends React.Component {
+  //todo:バーコード読み取り中止機能をつける
+  //todo:バーコード読み取り/入力完了時、登録する本をプレビューする機能追加
+  constructor(props) {
+    super(props);
+    this.state = {
+      showBarcodeReader: false
+    };
+  }
+  render() {
+    const {
+      showBarcodeReader
+    } = this.state;
+    const {
+      inputingIsbn,
+      inputOnChange,
+      onBarcodeReadSuccess,
+      submitOnClick
+    } = this.props;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "form-group"
+    }, /*#__PURE__*/React.createElement("div", null, "ISBN\u30B3\u30FC\u30C9", /*#__PURE__*/React.createElement("input", {
+      type: "text",
+      name: "isbn",
+      value: inputingIsbn,
+      inputMode: "numeric",
+      onChange: inputOnChange
+    })), showBarcodeReader && /*#__PURE__*/React.createElement(BarcodeReader, {
+      onReadSuccess: code => {
+        onBarcodeReadSuccess(code);
+        this.setState({
+          showBarcodeReader: false
+        });
+      }
+    }), !showBarcodeReader && /*#__PURE__*/React.createElement("button", {
+      type: "button",
+      onClick: () => this.setState({
+        showBarcodeReader: true
+      })
+    }, "\u30D0\u30FC\u30B3\u30FC\u30C9\u8AAD\u307F\u53D6\u308A"), /*#__PURE__*/React.createElement("button", {
+      type: "submit",
+      onClick: submitOnClick
+    }, "\u8FFD\u52A0"));
+  }
 }
 class BookAddState extends React.Component {
   constructor(props) {
@@ -150,6 +326,11 @@ class BookAddState extends React.Component {
         submitOnClick(this.state.inputingIsbn);
         this.setState({
           inputingIsbn: ""
+        });
+      },
+      onBarcodeReadSuccess: barcode => {
+        this.setState({
+          inputingIsbn: barcode
         });
       },
       inputOnChange: e => {
