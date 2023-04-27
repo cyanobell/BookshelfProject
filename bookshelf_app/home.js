@@ -250,7 +250,6 @@ class PlayCamera extends React.Component {
   }
 }
 class BarcodeReader extends React.Component {
-  //todo:バーコード読み取りAPIの対応幅を広げる
   constructor(props) {
     super(props);
     this.state = {
@@ -280,7 +279,6 @@ class BarcodeReader extends React.Component {
         const barcodeDetector = new BarcodeDetector();
         barcodes = await barcodeDetector.detect(imageData);
       }
-      //todo:ブラウザがBarcodeDetectorに対応していない場合、別の方法を試す。
       if (barcodes.length > 0) {
         return barcodes;
       } else {
@@ -320,7 +318,6 @@ class BarcodeReader extends React.Component {
   }
 }
 class IsbnInputArea extends React.Component {
-  //todo:バーコード読み取り/入力完了時、登録する本をプレビューする機能追加
   constructor(props) {
     super(props);
     this.state = {
