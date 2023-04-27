@@ -264,7 +264,6 @@ class BarcodeReader extends React.Component {
 }
 
 class IsbnInputArea extends React.Component {
-    //todo:バーコード読み取り中止機能をつける
     //todo:バーコード読み取り/入力完了時、登録する本をプレビューする機能追加
     constructor(props) {
         super(props);
@@ -286,6 +285,7 @@ class IsbnInputArea extends React.Component {
                 </div>
                 {showBarcodeReader && <BarcodeReader onReadSuccess={(code) => { onBarcodeReadSuccess(code); this.setState({ showBarcodeReader: false }) }} />}
                 {!showBarcodeReader && <button type="button" onClick={() => this.setState({ showBarcodeReader: true })}>バーコード読み取り</button>}
+                {showBarcodeReader && <button type="button" onClick={() => this.setState({ showBarcodeReader: false })}>読み取り中止</button>}
                 <button type="submit" onClick={submitOnClick}>追加</button>
             </div>
         );
