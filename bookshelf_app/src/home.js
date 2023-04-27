@@ -261,7 +261,13 @@ class BarcodeReader extends React.Component {
             readedIsbnValue: null,
         };
         this.video = { width: 640, height: 480 };
+        this.videoHTML = <></>;
         this.detectIsbnCode = this.detectIsbnCode.bind(this);
+        if (typeof BarcodeDetector === "function") {
+            this.videoHTML = <PlayCamera onReading={this.detectIsbnCode} width={this.video.width} height={this.video.height} />;
+        }else{
+            this.videoHTML = <div>このブラウザは、バーコードの読み取りに対応していません</div>;
+        }
     }
 
     async detectBarcodes(imageData) {
@@ -307,7 +313,7 @@ class BarcodeReader extends React.Component {
         }
         return (
             <div>
-                {<PlayCamera onReading={this.detectIsbnCode} width={this.video.width} height={this.video.height} />}
+                { this.videoHTML}
             </div >
         );
     }

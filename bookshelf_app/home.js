@@ -261,7 +261,17 @@ class BarcodeReader extends React.Component {
       width: 640,
       height: 480
     };
+    this.videoHTML = /*#__PURE__*/React.createElement(React.Fragment, null);
     this.detectIsbnCode = this.detectIsbnCode.bind(this);
+    if (typeof BarcodeDetector === "function") {
+      this.videoHTML = /*#__PURE__*/React.createElement(PlayCamera, {
+        onReading: this.detectIsbnCode,
+        width: this.video.width,
+        height: this.video.height
+      });
+    } else {
+      this.videoHTML = /*#__PURE__*/React.createElement("div", null, "\u3053\u306E\u30D6\u30E9\u30A6\u30B6\u306F\u3001\u30D0\u30FC\u30B3\u30FC\u30C9\u306E\u8AAD\u307F\u53D6\u308A\u306B\u5BFE\u5FDC\u3057\u3066\u3044\u307E\u305B\u3093");
+    }
   }
   async detectBarcodes(imageData) {
     try {
@@ -306,11 +316,7 @@ class BarcodeReader extends React.Component {
     if (this.state.readedIsbnValue) {
       onReadSuccess(this.state.readedIsbnValue);
     }
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PlayCamera, {
-      onReading: this.detectIsbnCode,
-      width: this.video.width,
-      height: this.video.height
-    }));
+    return /*#__PURE__*/React.createElement("div", null, this.videoHTML);
   }
 }
 class IsbnInputArea extends React.Component {
