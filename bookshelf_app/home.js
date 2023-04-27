@@ -148,6 +148,107 @@ class BookShowState extends React.Component {
   }
 }
 ;
+class PlayCamera extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentDeviceIndex: 0,
+      devices: [],
+      stream: null
+    };
+    this.videoRef = React.createRef();
+    this.handleCameraChange = this.handleCameraChange.bind(this);
+  }
+  async componentDidMount() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === "videoinput");
+      this.setState({
+        devices: videoDevices
+      });
+      if (videoDevices.length > 0) {
+        await this.startCamera(videoDevices[this.state.currentDeviceIndex].deviceId);
+      }
+      this.captureImage();
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async componentWillUnmount() {
+    await this.stopCamera();
+  }
+  async startCamera(deviceId) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          deviceId
+        }
+      });
+      this.videoRef.current.srcObject = stream;
+      await this.videoRef.current.play();
+      this.setState({
+        stream
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  async stopCamera() {
+    if (this.state.stream) {
+      this.state.stream.getTracks().forEach(track => track.stop());
+      this.setState({
+        stream: null
+      });
+    }
+  }
+  async handleCameraChange() {
+    const {
+      currentDeviceIndex,
+      devices
+    } = this.state;
+    const nextDeviceIndex = (currentDeviceIndex + 1) % devices.length;
+    await this.stopCamera();
+    await this.startCamera(devices[nextDeviceIndex].deviceId);
+    this.captureImage();
+    this.setState({
+      currentDeviceIndex: nextDeviceIndex
+    });
+  }
+  captureImage = () => {
+    if (!this.videoRef.current || this.videoRef.current.videoWidth === 0 || this.videoRef.current.videoHeight === 0) {
+      return;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = this.videoRef.current.videoWidth;
+    canvas.height = this.videoRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(this.videoRef.current, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    this.props.onReading(imageData);
+    window.requestAnimationFrame(this.captureImage);
+  };
+  render() {
+    return /*#__PURE__*/React.createElement("div", {
+      className: "barcode-reader"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid black",
+        width: `${this.props.width}px`,
+        height: `${this.props.height}px`,
+        marginBottom: "16px"
+      }
+    }, /*#__PURE__*/React.createElement("video", {
+      ref: this.videoRef,
+      style: {
+        objectFit: "contain",
+        width: "100%",
+        height: "100%"
+      }
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: this.handleCameraChange
+    }, "\u30AB\u30E1\u30E9\u5909\u66F4"));
+  }
+}
 class BarcodeReader extends React.Component {
   //todo:カメラ切り替え機能の追加
   //todo:バーコード読み取りAPIの対応幅を広げる
@@ -157,11 +258,11 @@ class BarcodeReader extends React.Component {
       imgSrc: null,
       readedIsbnValue: null
     };
-    this.videoRef = React.createRef();
     this.video = {
       width: 640,
       height: 480
     };
+    this.detectIsbnCode = this.detectIsbnCode.bind(this);
   }
   async detectBarcodes(imageData) {
     try {
@@ -187,7 +288,9 @@ class BarcodeReader extends React.Component {
       if (barcodes && barcodes.length > 0) {
         for (const barcode of barcodes) {
           if (checkIsValidISBN(barcode.rawValue)) {
-            return barcode.rawValue;
+            this.setState({
+              readedIsbnValue: barcode.rawValue
+            });
           }
         }
       }
@@ -197,48 +300,6 @@ class BarcodeReader extends React.Component {
       return null;
     }
   }
-  async getCameraStream() {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      let cameraId = null;
-      devices.forEach(device => {
-        if (device.kind === "videoinput" && device.facingMode === "environment") {
-          cameraId = device.deviceId;
-        }
-      });
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          deviceId: cameraId
-        }
-      });
-      return stream;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
-  }
-  async componentDidMount() {
-    const stream = await this.getCameraStream();
-    this.videoRef.current.srcObject = stream;
-    this.videoRef.current.play();
-    const canvas = document.createElement("canvas");
-    canvas.width = this.video.width;
-    canvas.height = this.video.height;
-    console.log(canvas);
-    console.log(this.videoRef.current.videoWidth);
-    const context = canvas.getContext("2d");
-    setInterval(async () => {
-      context.drawImage(this.videoRef.current, 0, 0, canvas.width, canvas.height);
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      console.log(imageData);
-      const readed_isbn = await this.detectIsbnCode(imageData);
-      if (readed_isbn) {
-        this.setState({
-          readedIsbnValue: readed_isbn
-        });
-      }
-    }, 1000 / 30);
-  }
   render() {
     const {
       onReadSuccess
@@ -246,21 +307,11 @@ class BarcodeReader extends React.Component {
     if (this.state.readedIsbnValue) {
       onReadSuccess(this.state.readedIsbnValue);
     }
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        border: "1px solid black",
-        width: `${this.video.width}px`,
-        height: `${this.video.height}px`,
-        marginBottom: "16px"
-      }
-    }, /*#__PURE__*/React.createElement("video", {
-      ref: this.videoRef,
-      style: {
-        objectFit: "contain",
-        width: "100%",
-        height: "100%"
-      }
-    })));
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(PlayCamera, {
+      onReading: this.detectIsbnCode,
+      width: this.video.width,
+      height: this.video.height
+    }));
   }
 }
 class IsbnInputArea extends React.Component {
