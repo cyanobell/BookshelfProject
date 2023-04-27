@@ -253,7 +253,6 @@ class PlayCamera extends React.Component {
 }
 
 class BarcodeReader extends React.Component {
-    //todo:カメラ切り替え機能の追加
     //todo:バーコード読み取りAPIの対応幅を広げる
     constructor(props) {
         super(props);
