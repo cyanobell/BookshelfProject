@@ -1,23 +1,28 @@
-const express = require('express');
-const https = require('https');
 const fs = require('fs');
+const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const port = 3000;
 const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
+const https = require('https');
+
+const port = 3000;
+const saltRounds = 10;
+const crientDirectry = '/bookshelf_app';
+
 const sess = {
   secret: session_pass,
   cookie: { maxAge: 60000 },
   resave: false,
   saveUninitialized: false,
 }
-const options = {
+
+const https_options = {
   key: fs.readFileSync('.ssh/localhost.key'),
   cert: fs.readFileSync('.ssh/localhost.crt')
 };
+
 const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
-const app = express();
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -32,8 +37,8 @@ connection.connect((err) => {
   }
   console.log('Successfully connected to SQL.');
 });
-const saltRounds = 10;
-const crientDirectry = '/bookshelf_app';
+
+const app = express();
 app.use((req, res, next) => {
   req.app.locals.connection = connection;
   req.app.locals.saltRounds = saltRounds;
@@ -68,6 +73,6 @@ app.use('/api', apiRoutes);
 
 
 // start HTTPS server
-https.createServer(options, app).listen(port, function () {
+https.createServer(https_options, app).listen(port, function () {
   console.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
 });
