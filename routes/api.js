@@ -1,6 +1,6 @@
+'use strict';
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 
 router.get('/get_have_books', async (req, res) => {
     const connection = req.app.locals.connection;
