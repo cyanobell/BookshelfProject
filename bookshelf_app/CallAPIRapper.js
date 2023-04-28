@@ -2,7 +2,7 @@
 
 import { getBookJson } from './bookUtil.js';
 const CallAPIRapper = {
-  async loadIsbn() {
+  async loadBooks() {
     try {
       const response = await fetch(`/api/get_have_books`, {
         method: 'GET'
@@ -17,7 +17,7 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async loadIsbnWithSharedId(shared_id) {
+  async loadBooksWithSharedId(shared_id) {
     try {
       const response = await fetch(`/api/get_shared_books/${shared_id}`, {
         method: 'GET'
@@ -44,7 +44,7 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async registerIsbn(inputingIsbn) {
+  async registerNewIsbn(inputingIsbn) {
     try {
       if (inputingIsbn.length === 0) {
         this.setState({
@@ -73,7 +73,7 @@ const CallAPIRapper = {
       };
     }
   },
-  async changeReadState(book, new_read_state) {
+  async changeBookReadState(book, new_read_state) {
     try {
       let send_data = {
         book: book,
@@ -116,7 +116,7 @@ const CallAPIRapper = {
       };
     }
   },
-  async shareUrlCopyToCrip() {
+  async getLoginingUserId() {
     try {
       const response = await fetch(`/api/get_user_id`, {
         method: 'GET'
