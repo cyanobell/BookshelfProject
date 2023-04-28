@@ -30,7 +30,7 @@ const connection = mysql.createConnection({
   password: spl_pass,
   database: 'books_app'
 });
-//throw error to terminal
+
 connection.connect((err) => {
   if (err) {
     console.log('Error connecting to SQL: ' + err.stack);
@@ -73,8 +73,6 @@ app.use('/home', homeRoutes);
 app.use('/shared_books', sharedBooksRoutes);
 app.use('/api', apiRoutes);
 
-
-// start HTTPS server
 https.createServer(https_options, app).listen(port, function () {
   console.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
 });

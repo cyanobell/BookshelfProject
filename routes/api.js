@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-//book api
-//book show
+
 router.get('/get_have_books', async (req, res) => {
     const connection = req.app.locals.connection;
     try {
@@ -19,7 +18,6 @@ router.get('/get_user_id', (req, res) => {
 });
 
 function checkIsValidISBN(isbn_str) {
-    //ｰ>デバッグ用。どんな番号でも許可するreturn isbn_str.length !== 0;
     //現状古い規格は非対応
     if (isbn_str.length != 13) {
         return false;
@@ -50,10 +48,10 @@ function checkIsValidISBN(isbn_str) {
     }
 }
 
-//book register
 router.post('/register_book', async (req, res) => {
     const connection = req.app.locals.connection;
     if (req.session.user_id === undefined) {
+        console.log('not login user tried to register book');
         return;
     }
     const in_data = req.body;
@@ -92,16 +90,15 @@ function checkEditPermission(book, req) {
 }
 
 async function checkExistBook(book, connection) {
-    console.log(book);
     const results = await connection.queryAsync(
         'SELECT * FROM books WHERE id = ? AND user_id = ? AND isbn = ? AND read_state = ? LIMIT 1', [book.id, book.user_id, book.isbn, book.read_state]
     );
-    console.log(results);
     return results.length === 1;
 }
 
 router.post('/change_read_state', async (req, res) => {
     if (req.session.user_id === undefined) {
+        console.log('not login user tried to change read state');
         return;
     }
     const connection = req.app.locals.connection;
@@ -132,6 +129,7 @@ router.post('/change_read_state', async (req, res) => {
 
 router.post('/delete_book', async (req, res) => {
     if (req.session.user_id === undefined) {
+        console.log('not login user tried to delete_book');
         return;
     }
 
@@ -139,6 +137,7 @@ router.post('/delete_book', async (req, res) => {
     const book = req.body.book;
 
     if (!checkEditPermission(book, req)) {
+        console.log(book.user_id + ' has no permission');
         res.json({ text: 'server error' });
         return;
     }
@@ -146,6 +145,7 @@ router.post('/delete_book', async (req, res) => {
     try {
         const exist = await checkExistBook(book, connection);
         if (!exist) {
+            console.log(book.isbn + ' is not exist');
             res.json({ text: 'server error' });
             return;
         }
@@ -161,9 +161,8 @@ router.post('/delete_book', async (req, res) => {
     }
 });
 
-//show shared books
 router.get('/get_shared_books/:shared_id', async (req, res) => {
-    console.log(req.params.shared_id + "is watched");
+    console.log(req.params.shared_id + " is watching");
     const connection = req.app.locals.connection;
     try {
         const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [req.params.shared_id]);
