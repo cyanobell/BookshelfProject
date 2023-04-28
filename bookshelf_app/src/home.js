@@ -44,7 +44,7 @@ class Bookshelf extends React.Component {
         }
     }
 
-    async registerIsbn(inputingIsbn) {
+    registerIsbn = async (inputingIsbn) => {
         try {
             if (inputingIsbn.length === 0) {
                 this.setState({ server_response: '入力欄が空です。' });
@@ -169,7 +169,7 @@ class Bookshelf extends React.Component {
                 case 1:
                     return (
                         <BookAddState
-                            submitOnClick={(inputedIsbn) => this.registerIsbn(inputedIsbn)}
+                            submitOnClick={this.registerIsbn}
                             books={this.state.books}
                         />
                     );

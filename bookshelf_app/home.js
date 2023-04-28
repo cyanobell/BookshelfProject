@@ -55,7 +55,7 @@ class Bookshelf extends React.Component {
       console.error(error);
     }
   }
-  async registerIsbn(inputingIsbn) {
+  registerIsbn = async inputingIsbn => {
     try {
       if (inputingIsbn.length === 0) {
         this.setState({
@@ -105,7 +105,7 @@ class Bookshelf extends React.Component {
         server_response: 'サーバーエラーが発生しました。'
       });
     }
-  }
+  };
   async changeReadState(index, new_read_state) {
     try {
       let send_data = {
@@ -218,7 +218,7 @@ class Bookshelf extends React.Component {
           });
         case 1:
           return /*#__PURE__*/React.createElement(BookAddState, {
-            submitOnClick: inputedIsbn => this.registerIsbn(inputedIsbn),
+            submitOnClick: this.registerIsbn,
             books: this.state.books
           });
         case 2:
