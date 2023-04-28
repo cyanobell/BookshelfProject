@@ -1,10 +1,10 @@
 'use strict';
 
-import { getBookJson } from './bookUtil.js';
 import BookShowState from './BookShowState.js';
 import BookAddState from './BookAddState.js';
 import BookReadingChangeState from './BookReadingChangeState.js';
 import BookDeleteState from './BookDeleteState.js';
+import CallAPIRapper from './CallAPIRapper.js';
 function ModeSelecter(props) {
   return /*#__PURE__*/React.createElement("div", {
     className: "form-group"
@@ -38,22 +38,16 @@ class Bookshelf extends React.Component {
     };
     this.loadIsbn();
   }
-  async loadIsbn() {
+  loadIsbn = async () => {
     try {
-      const response = await fetch(`/api/get_have_books`, {
-        method: 'GET'
-      });
-      const books = await response.json();
-      for (const book of books) {
-        book.detail = await getBookJson(book.isbn);
-      }
+      const books = await CallAPIRapper.loadIsbn();
       this.setState({
         books: books
       });
     } catch (error) {
       console.error(error);
     }
-  }
+  };
   registerIsbn = async inputingIsbn => {
     try {
       if (inputingIsbn.length === 0) {
@@ -62,18 +56,7 @@ class Bookshelf extends React.Component {
         });
         return;
       }
-      let send_data = {
-        isbn: inputingIsbn
-      };
-      const response = await fetch('/api/register_book', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(send_data)
-      });
-      const json = await response.json();
+      const json = await CallAPIRapper.registerIsbn(inputingIsbn);
       if (json.text === 'success') {
         this.setState({
           server_response: '登録できました！'
@@ -81,7 +64,6 @@ class Bookshelf extends React.Component {
         this.setState({
           inputingIsbn: ''
         });
-        json.book.detail = await getBookJson(json.book.isbn);
         this.setState({
           books: this.state.books.concat([json.book])
         });
@@ -105,21 +87,10 @@ class Bookshelf extends React.Component {
       });
     }
   };
-  async changeReadState(index, new_read_state) {
+  changeReadState = async (index, new_read_state) => {
     try {
-      let send_data = {
-        book: this.state.books[index],
-        new_read_state: new_read_state
-      };
-      const response = await fetch('/api/change_read_state', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(send_data)
-      });
-      const json = await response.json();
+      const json = await CallAPIRapper.changeReadState(this.state.books[index], new_read_state);
+      console.log(json);
       console.log(json.text);
       if (json.text === 'success') {
         this.setState({
@@ -150,21 +121,10 @@ class Bookshelf extends React.Component {
         server_response: 'サーバーエラーが発生しました。'
       });
     }
-  }
-  async deleteBook(index) {
+  };
+  deleteBook = async index => {
     try {
-      let send_data = {
-        book: this.state.books[index]
-      };
-      const response = await fetch('/api/delete_book', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(send_data)
-      });
-      const json = await response.json();
+      const json = await CallAPIRapper.deleteBook(this.state.books[index]);
       console.log(json.text);
       if (json.text === 'success') {
         this.setState({
@@ -184,8 +144,8 @@ class Bookshelf extends React.Component {
         server_response: 'サーバーエラーが発生しました。'
       });
     }
-  }
-  async shareUrlCopyToCrip() {
+  };
+  shareUrlCopyToCrip = async () => {
     try {
       const response = await fetch(`/api/get_user_id`, {
         method: 'GET'
@@ -207,7 +167,7 @@ class Bookshelf extends React.Component {
         server_response: 'サーバーエラーが発生しました。'
       });
     }
-  }
+  };
   render() {
     const modeStateHtml = mode_state => {
       switch (mode_state) {
