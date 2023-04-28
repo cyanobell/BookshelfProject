@@ -45,6 +45,7 @@ class Bookshelf extends React.Component {
             }
 
             const json = await CallAPIRapper.registerIsbn(inputingIsbn);
+            console.log("res: " + json.text);
             if (json.text === 'success') {
                 this.setState({ server_response: '登録できました！' });
                 this.setState({ inputingIsbn: '' });
@@ -65,8 +66,7 @@ class Bookshelf extends React.Component {
     changeReadState = async (index, new_read_state) => {
         try {
             const json = await CallAPIRapper.changeReadState(this.state.books[index], new_read_state);
-            console.log(json);
-            console.log(json.text);
+            console.log("res: " + json.text);
             if (json.text === 'success') {
                 this.setState({ server_response: '変更できました！' });
                 this.setState({ inputingIsbn: '' });
@@ -86,7 +86,7 @@ class Bookshelf extends React.Component {
     deleteBook = async (index) => {
         try {
             const json = await CallAPIRapper.deleteBook(this.state.books[index]);
-            console.log(json.text);
+            console.log("res: " + json.text);
             if (json.text === 'success') {
                 this.setState({ server_response: this.state.books[index].detail.summary.title + ' を削除しました。' });
                 this.setState({
@@ -107,13 +107,14 @@ class Bookshelf extends React.Component {
                 method: 'GET',
             })
             const json = await response.json();
-            console.log(json.user_id);
             const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
             navigator.clipboard.writeText(shareUrl).then(
                 () => {
+                    console.log(shareUrl + " was copyed");
                     this.setState({ server_response: 'クリップボードに共有用URLをコピーしました。' });
                 },
                 () => {
+                    console.log(shareUrl + " :can not copy to clipboard");
                     this.setState({ server_response: 'URL: ' + shareUrl });
                 });
         } catch (error) {

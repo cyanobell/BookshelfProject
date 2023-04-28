@@ -26,7 +26,7 @@ class Login extends React.Component {
           body: JSON.stringify(send_data)
         });
         const json = await response.json();
-        console.log(json);
+        console.log("res: " + json.text);
         if (json.text === 'user or password is wrong') {
           this.setState({
             login_state_text: 'ログインに失敗しました'

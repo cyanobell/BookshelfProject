@@ -30,7 +30,6 @@ export function checkIsValidISBN(isbn) {
   if ((sum + check_digit) % 10 === 0) {
     return true;
   } else {
-    console.log("Barcode error: " + sum + check_digit);
     return false;
   }
 }
@@ -40,7 +39,6 @@ export async function getBookJson(isbn) {
     const response = await fetch(url);
     const data = await response.json();
     if (data && data[0]) {
-      console.log("call isbn api success");
       return data[0];
     } else {
       return {

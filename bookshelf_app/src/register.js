@@ -25,7 +25,7 @@ class Register extends React.Component {
         });
 
         const json = await response.json();
-        console.log(json);
+        console.log("res: " + json.text);
         if (json.text === 'The name is already registered.') {
           this.setState({ login_state_text: 'その名前はすでに登録されています' });
         } else if (json.text === 'success') {
