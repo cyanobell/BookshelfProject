@@ -3,14 +3,15 @@ const router = express.Router();
 const path = require('path');
 //book api
 //book show
-router.get('/get_have_books', (req, res) => {
+router.get('/get_have_books', async (req, res) => {
     const connection = req.app.locals.connection;
-    connection.query(
-        'SELECT * FROM books WHERE user_id = ?', [req.session.user_id],
-        (error, books) => {
-            res.json(books);
-        }
-    );
+    try {
+        const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [req.session.user_id]);
+        res.json(books);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error retrieving books');
+    }
 });
 
 router.get('/get_user_id', (req, res) => {
@@ -50,7 +51,7 @@ function checkIsValidISBN(isbn_str) {
 }
 
 //book register
-router.post('/register_book', (req, res) => {
+router.post('/register_book', async (req, res) => {
     const connection = req.app.locals.connection;
     if (req.session.user_id === undefined) {
         return;
@@ -61,52 +62,45 @@ router.post('/register_book', (req, res) => {
         return;
     }
 
-    //本が登録されてないときのみ登録。
-    //本を挿入し、挿入したデータをクライアントに返します。
-    connection.query(
-        'SELECT * FROM books WHERE user_id = ? AND isbn = ? LIMIT 1', [req.session.user_id, in_data.isbn],
-        (error, books) => {
-            if (books.length !== 0) {
-                res.json({ text: 'already registered' });
-            } else {
-                connection.query(
-                    "INSERT INTO books(user_id,isbn,read_state) VALUES (?, ?, 0)", [req.session.user_id, in_data.isbn],
-                    (error, results) => {
-                        connection.query("SELECT last_insert_id()",
-                            (error, results) => {
-                                res.json({
-                                    text: 'success',
-                                    book: {
-                                        id: results[0]['last_insert_id()'],
-                                        user_id: req.session.user_id,
-                                        isbn: in_data.isbn,
-                                        read_state: 0
-                                    }
-                                });
-                                console.log(in_data.isbn.toString() + ' is register');
-                            }
-                        );
-                    }
-                );
-            }
-        });
+    try {
+        const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ? AND isbn = ? LIMIT 1', [req.session.user_id, in_data.isbn]);
+        if (books.length !== 0) {
+            res.json({ text: 'already registered' });
+        } else {
+            await connection.queryAsync("INSERT INTO books(user_id,isbn,read_state) VALUES (?, ?, 0)", [req.session.user_id, in_data.isbn]);
+            const [lastInsert] = await connection.queryAsync("SELECT last_insert_id()");
+            const lastInsertId = lastInsert['last_insert_id()'];
+            res.json({
+                text: 'success',
+                book: {
+                    id: lastInsertId,
+                    user_id: req.session.user_id,
+                    isbn: in_data.isbn,
+                    read_state: 0
+                }
+            });
+            console.log(in_data.isbn.toString() + ' is register');
+        }
+    } catch (error) {
+        console.log(error);
+        res.json({ text: 'error' });
+    }
 });
 
 function checkEditPermission(book, req) {
     return book.user_id === req.session.user_id;
 }
 
-function checkExistBook(book, connection ,resFunc) {
+async function checkExistBook(book, connection) {
     console.log(book);
-    connection.query(
-        'SELECT * FROM books WHERE id = ? AND user_id = ? AND isbn = ? AND read_state = ? LIMIT 1', [book.id, book.user_id, book.isbn, book.read_state],
-        (error, results, fields) => {
-            resFunc(error, results.length === 1, fields);
-        }
+    const results = await connection.queryAsync(
+        'SELECT * FROM books WHERE id = ? AND user_id = ? AND isbn = ? AND read_state = ? LIMIT 1', [book.id, book.user_id, book.isbn, book.read_state]
     );
+    console.log(results);
+    return results.length === 1;
 }
 
-router.post('/change_read_state', (req, res) => {
+router.post('/change_read_state', async (req, res) => {
     if (req.session.user_id === undefined) {
         return;
     }
@@ -118,59 +112,66 @@ router.post('/change_read_state', (req, res) => {
         res.json({ text: 'server error' });
         return;
     }
-    checkExistBook(book, connection, (error, exist) => {
+
+    try {
+        const exist = await checkExistBook(book, connection);
         if (!exist) {
             console.log(book.isbn + ' is not exist');
             res.json({ text: 'server error' });
             return;
         }
-        connection.query(
-            'UPDATE books SET read_state = ? WHERE id = ?', [new_read_state, book.id],
-            (error, results) => {
-                console.log(book.isbn + ' is state changed to ' + new_read_state);
-                res.json({ text: 'success' });
-                return;
-            }
-        );
-    });
+
+        await connection.queryAsync('UPDATE books SET read_state = ? WHERE id = ?', [new_read_state, book.id]);
+        console.log(book.isbn + ' is state changed to ' + new_read_state);
+        res.json({ text: 'success' });
+    } catch (error) {
+        console.error(error);
+        res.json({ text: 'server error' });
+    }
 });
 
-router.post('/delete_book', (req, res) => {
+router.post('/delete_book', async (req, res) => {
     if (req.session.user_id === undefined) {
         return;
     }
+
     const connection = req.app.locals.connection;
     const book = req.body.book;
+
     if (!checkEditPermission(book, req)) {
         res.json({ text: 'server error' });
         return;
     }
-    checkExistBook(book, connection, (error, exist) => {
+
+    try {
+        const exist = await checkExistBook(book, connection);
         if (!exist) {
             res.json({ text: 'server error' });
             return;
         }
-        connection.query(
-            'DELETE FROM books WHERE id = ?', [book.id],
-            (error, results) => {
-                console.log(book.isbn + ' is deleted.');
-                res.json({ text: 'success' });
-                return;
-            }
-        );
-    });
+
+        await connection.queryAsync('DELETE FROM books WHERE id = ?', [book.id]);
+        console.log(book.isbn + ' is deleted.');
+        res.json({ text: 'success' });
+        return;
+    } catch (error) {
+        console.error(error);
+        res.json({ text: 'server error' });
+        return;
+    }
 });
 
 //show shared books
-router.get('/get_shared_books/:shared_id', (req, res) => {
+router.get('/get_shared_books/:shared_id', async (req, res) => {
     console.log(req.params.shared_id + "is watched");
     const connection = req.app.locals.connection;
-    connection.query(
-        'SELECT * FROM books WHERE user_id = ?', [req.params.shared_id],
-        (error, books) => {
-            res.json(books);
-        }
-    );
+    try {
+        const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [req.params.shared_id]);
+        res.json(books);
+    } catch (error) {
+        console.error(error);
+        res.json({ text: 'server error' });
+    }
 });
 
 module.exports = router;

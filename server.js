@@ -1,6 +1,7 @@
 const fs = require('fs');
 const express = require('express');
 const mysql = require('mysql');
+const util = require('util');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
@@ -37,6 +38,7 @@ connection.connect((err) => {
   }
   console.log('Successfully connected to SQL.');
 });
+connection.queryAsync = util.promisify(connection.query).bind(connection);
 
 const app = express();
 app.use((req, res, next) => {
