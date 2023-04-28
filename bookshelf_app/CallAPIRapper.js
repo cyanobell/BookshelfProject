@@ -32,6 +32,18 @@ const CallAPIRapper = {
       return [];
     }
   },
+  async loadUsernameWithSharedId(shared_id) {
+    try {
+      const response = await fetch(`/api/get_user_name_to_id/${shared_id}`, {
+        method: 'GET'
+      });
+      const json = await response.json();
+      return json.user_name;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
   async registerIsbn(inputingIsbn) {
     try {
       if (inputingIsbn.length === 0) {
