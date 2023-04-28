@@ -173,4 +173,16 @@ router.get('/get_shared_books/:shared_id', async (req, res) => {
     }
 });
 
+router.get('/get_user_name_to_id/:shared_id', async (req, res) => {
+    console.log(req.params.shared_id + " is watching");
+    const connection = req.app.locals.connection;
+    try {
+        const [result] = await connection.queryAsync('SELECT * FROM users WHERE id = ?', [req.params.shared_id]);
+        res.json({ user_name: result.name });
+    } catch (error) {
+        console.error(error);
+        res.json({ text: 'server error' });
+    }
+});
+
 module.exports = router;

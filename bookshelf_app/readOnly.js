@@ -2,6 +2,7 @@
 
 import { getBookJson } from './bookUtil.js';
 import BookShowState from './BookShowState.js';
+import CallAPIRapper from './CallAPIRapper.js';
 class Bookshelf extends React.Component {
   constructor(props) {
     super(props);
@@ -10,7 +11,8 @@ class Bookshelf extends React.Component {
       inputingIsbn: '',
       books: [],
       bookDetails: [],
-      mode_state: 0
+      mode_state: 0,
+      user_name: ''
     };
     this.loadIsbn();
   }
@@ -25,9 +27,14 @@ class Bookshelf extends React.Component {
       for (const book of books) {
         book.detail = await getBookJson(book.isbn);
       }
+      const user_name = await CallAPIRapper.loadUsernameWithSharedId(shared_id);
       this.setState({
         books: books
       });
+      this.setState({
+        user_name: user_name
+      });
+      document.title = '技術書籍in本棚サイト-' + user_name + 'の本棚';
     } catch (error) {
       console.error(error);
     }
@@ -35,7 +42,7 @@ class Bookshelf extends React.Component {
   render() {
     return /*#__PURE__*/React.createElement("div", {
       className: "Bookshelf"
-    }, /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("h1", null, this.state.user_name, " \u306E\u672C\u68DA"), /*#__PURE__*/React.createElement("div", {
       className: "ServerResponse"
     }, this.state.server_response), /*#__PURE__*/React.createElement(BookShowState, {
       books: this.state.books
