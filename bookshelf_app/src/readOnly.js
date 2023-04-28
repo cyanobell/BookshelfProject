@@ -1,5 +1,4 @@
 'use strict';
-const e = React.createElement;
 async function getBookJson(isbn) {
     const url = "https://api.openbd.jp/v1/get?isbn=" + isbn;
     try {

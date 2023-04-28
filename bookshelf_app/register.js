@@ -1,6 +1,5 @@
 'use strict';
 
-const e = React.createElement;
 class Register extends React.Component {
   constructor(props) {
     super(props);
