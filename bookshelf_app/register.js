@@ -1,6 +1,5 @@
 'use strict';
 
-const e = React.createElement;
 class Register extends React.Component {
   constructor(props) {
     super(props);
@@ -11,19 +10,23 @@ class Register extends React.Component {
     };
   }
   render() {
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
+      e.preventDefault();
       let send_data = {
         name: this.state.name,
         pass: this.state.password
       };
-      fetch('/register', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(send_data)
-      }).then(data => data.json()).then(json => {
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(send_data)
+        });
+        const json = await response.json();
+        console.log("res: " + json.text);
         if (json.text === 'The name is already registered.') {
           this.setState({
             login_state_text: 'その名前はすでに登録されています'
@@ -31,8 +34,9 @@ class Register extends React.Component {
         } else if (json.text === 'success') {
           location.href = '/home';
         }
-      });
-      e.preventDefault();
+      } catch (error) {
+        console.error('Error:', error);
+      }
     };
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, this.state.login_state_text), /*#__PURE__*/React.createElement("form", {
       onSubmit: handleSubmit
