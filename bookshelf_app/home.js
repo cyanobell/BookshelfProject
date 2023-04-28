@@ -1,6 +1,5 @@
 'use strict';
 
-const e = React.createElement;
 function checkIsValidISBN(isbn) {
   if (isbn === null) {
     return false;
