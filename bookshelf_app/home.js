@@ -112,7 +112,7 @@ class Bookshelf extends React.Component {
         });
       } else {
         this.setState({
-          server_response: 'サーバーエラーです。登録できませんでした。'
+          server_response: 'サーバーエラーです。変更できませんでした。'
         });
       }
     } catch (error) {
@@ -135,7 +135,7 @@ class Bookshelf extends React.Component {
         });
       } else {
         this.setState({
-          server_response: 'サーバーエラーです。登録できませんでした。'
+          server_response: 'サーバーエラーです。削除できませんでした。'
         });
       }
     } catch (error) {

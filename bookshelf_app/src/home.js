@@ -75,7 +75,7 @@ class Bookshelf extends React.Component {
                 newBooks[index] = { ...books[index], read_state: new_read_state };
                 this.setState({ books: newBooks });
             } else {
-                this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+                this.setState({ server_response: 'サーバーエラーです。変更できませんでした。' });
             }
         } catch (error) {
             console.error(error);
@@ -93,7 +93,7 @@ class Bookshelf extends React.Component {
                     books: this.state.books.filter((book, findex) => findex !== index),
                 });
             } else {
-                this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+                this.setState({ server_response: 'サーバーエラーです。削除できませんでした。' });
             }
         } catch (error) {
             console.error(error);
