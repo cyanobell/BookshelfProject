@@ -10,19 +10,23 @@ class Login extends React.Component {
     };
   }
   render() {
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
       let send_data = {
         name: this.state.name,
         pass: this.state.password
       };
-      fetch('/login', {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(send_data)
-      }).then(data => data.json()).then(json => {
+      e.preventDefault();
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(send_data)
+        });
+        const json = await response.json();
+        console.log(json);
         if (json.text === 'user or password is wrong') {
           this.setState({
             login_state_text: 'ログインに失敗しました'
@@ -30,8 +34,9 @@ class Login extends React.Component {
         } else if (json.text === 'success') {
           location.href = '/home';
         }
-      });
-      e.preventDefault();
+      } catch (error) {
+        console.error('エラーが発生しました', error);
+      }
     };
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, this.state.login_state_text), /*#__PURE__*/React.createElement("form", {
       onSubmit: handleSubmit
