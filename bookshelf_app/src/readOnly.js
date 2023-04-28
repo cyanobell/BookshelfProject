@@ -7,11 +7,7 @@ class Bookshelf extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            server_response: '',
-            inputingIsbn: '',
             books: [],
-            bookDetails: [],
-            mode_state: 0,
             user_name:''
         };
         this.loadBooks();
