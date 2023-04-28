@@ -28,7 +28,6 @@ function ModeSelecter(props) {
   }), "\u66F8\u7C4D\u524A\u9664\u30E2\u30FC\u30C9");
 }
 class Bookshelf extends React.Component {
-  ///this class Call API
   constructor(props) {
     super(props);
     this.state = {

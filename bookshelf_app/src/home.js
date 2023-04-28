@@ -17,7 +17,6 @@ function ModeSelecter(props) {
 }
 
 class Bookshelf extends React.Component {
-    ///this class Call API
     constructor(props) {
         super(props);
         this.state = {

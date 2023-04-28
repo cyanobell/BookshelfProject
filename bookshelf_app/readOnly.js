@@ -3,7 +3,6 @@
 import { getBookJson } from './bookUtil.js';
 import BookShowState from './BookShowState.js';
 class Bookshelf extends React.Component {
-  ///this class Call API
   constructor(props) {
     super(props);
     this.state = {
