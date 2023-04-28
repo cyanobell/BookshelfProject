@@ -64,7 +64,9 @@ const CallAPIRapper = {
         body: JSON.stringify(send_data)
       });
       let json = await response.json();
-      json.book.detail = await getBookJson(json.book.isbn);
+      if (json.book !== undefined) {
+        json.book.detail = await getBookJson(json.book.isbn);
+      }
       return json;
     } catch (error) {
       console.error(error);
