@@ -75,8 +75,11 @@ const CallAPIRapper = {
   },
   async changeBookReadState(book, new_read_state) {
     try {
+      //サーバーサイドへはbook.detailを送らないようにします。
+      let send_book = JSON.parse(JSON.stringify(book));
+      send_book.detail = undefined;
       let send_data = {
-        book: book,
+        book: send_book,
         new_read_state: new_read_state
       };
       const response = await fetch('/api/change_read_state', {
@@ -97,8 +100,11 @@ const CallAPIRapper = {
   },
   async deleteBook(book) {
     try {
+      //サーバーサイドへはbook.detailを送らないようにします。
+      let send_book = JSON.parse(JSON.stringify(book));
+      send_book.detail = undefined;
       let send_data = {
-        book: book
+        book: send_book
       };
       const response = await fetch('/api/delete_book', {
         method: 'POST',
