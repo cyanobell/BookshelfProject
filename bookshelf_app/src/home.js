@@ -25,26 +25,26 @@ class Bookshelf extends React.Component {
             books: [],
             mode_state: 0
         };
-        this.loadIsbn();
+        this.loadBooks();
     }
 
-    loadIsbn = async () => {
+    loadBooks = async () => {
         try {
-            const books = await CallAPIRapper.loadIsbn();
+            const books = await CallAPIRapper.loadBooks();
             this.setState({ books: books });
         } catch (error) {
             console.error(error);
         }
     }
 
-    registerIsbn = async (inputingIsbn) => {
+    registerNewBook = async (inputingIsbn) => {
         try {
             if (inputingIsbn.length === 0) {
                 this.setState({ server_response: '入力欄が空です。' });
                 return;
             }
 
-            const json = await CallAPIRapper.registerIsbn(inputingIsbn);
+            const json = await CallAPIRapper.registerNewIsbn(inputingIsbn);
             console.log("res: " + json.text);
             if (json.text === 'success') {
                 this.setState({ server_response: '登録できました！' });
@@ -63,9 +63,9 @@ class Bookshelf extends React.Component {
         }
     }
 
-    changeReadState = async (index, new_read_state) => {
+    changeBookReadState = async (index, new_read_state) => {
         try {
-            const json = await CallAPIRapper.changeReadState(this.state.books[index], new_read_state);
+            const json = await CallAPIRapper.changeBookReadState(this.state.books[index], new_read_state);
             console.log("res: " + json.text);
             if (json.text === 'success') {
                 this.setState({ server_response: '変更できました！' });
@@ -103,10 +103,8 @@ class Bookshelf extends React.Component {
 
     shareUrlCopyToCrip = async () => {
         try {
-            const response = await fetch(`/api/get_user_id`, {
-                method: 'GET',
-            })
-            const json = await response.json();
+
+            const json = await CallAPIRapper.getLoginingUserId();
             const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
             navigator.clipboard.writeText(shareUrl).then(
                 () => {
@@ -133,7 +131,7 @@ class Bookshelf extends React.Component {
                 case 1:
                     return (
                         <BookAddState
-                            submitOnClick={this.registerIsbn}
+                            submitOnClick={this.registerNewBook}
                             books={this.state.books}
                         />
                     );
@@ -143,7 +141,7 @@ class Bookshelf extends React.Component {
                         changeReadState={(index) => {
                             let read_state = this.state.books[index].read_state;
                             let new_read_state = read_state < 2 ? read_state + 1 : 0;
-                            this.changeReadState(index, new_read_state);
+                            this.changeBookReadState(index, new_read_state);
                         }}
                     />);
                 case 3:

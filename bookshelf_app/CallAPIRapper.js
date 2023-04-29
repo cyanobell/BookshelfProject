@@ -2,7 +2,7 @@
 
 import { getBookJson } from './bookUtil.js';
 const CallAPIRapper = {
-  async loadIsbn() {
+  async loadBooks() {
     try {
       const response = await fetch(`/api/get_have_books`, {
         method: 'GET'
@@ -17,7 +17,7 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async loadIsbnWithSharedId(shared_id) {
+  async loadBooksWithSharedId(shared_id) {
     try {
       const response = await fetch(`/api/get_shared_books/${shared_id}`, {
         method: 'GET'
@@ -44,7 +44,7 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async registerIsbn(inputingIsbn) {
+  async registerNewIsbn(inputingIsbn) {
     try {
       if (inputingIsbn.length === 0) {
         this.setState({
@@ -75,10 +75,13 @@ const CallAPIRapper = {
       };
     }
   },
-  async changeReadState(book, new_read_state) {
+  async changeBookReadState(book, new_read_state) {
     try {
+      //サーバーサイドへはbook.detailを送らないようにします。
+      let send_book = JSON.parse(JSON.stringify(book));
+      send_book.detail = undefined;
       let send_data = {
-        book: book,
+        book: send_book,
         new_read_state: new_read_state
       };
       const response = await fetch('/api/change_read_state', {
@@ -99,8 +102,11 @@ const CallAPIRapper = {
   },
   async deleteBook(book) {
     try {
+      //サーバーサイドへはbook.detailを送らないようにします。
+      let send_book = JSON.parse(JSON.stringify(book));
+      send_book.detail = undefined;
       let send_data = {
-        book: book
+        book: send_book
       };
       const response = await fetch('/api/delete_book', {
         method: 'POST',
@@ -118,7 +124,7 @@ const CallAPIRapper = {
       };
     }
   },
-  async shareUrlCopyToCrip() {
+  async getLoginingUserId() {
     try {
       const response = await fetch(`/api/get_user_id`, {
         method: 'GET'
