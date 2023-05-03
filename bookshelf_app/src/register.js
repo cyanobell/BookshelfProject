@@ -6,12 +6,14 @@ class Register extends React.Component {
     this.state = {
       login_state_text: '',
       password: '',
-      name: ''
+      name: '',
+      submit_able: true
     };
   }
 
   render() {
     const handleSubmit = async (e) => {
+      this.setState({submit_able: false});
       e.preventDefault();
       let send_data = { name: this.state.name, pass: this.state.password };
       try {
@@ -34,6 +36,7 @@ class Register extends React.Component {
       } catch (error) {
         console.error('Error:', error);
       }
+      this.setState({submit_able: true});
     };
 
     return (
@@ -44,7 +47,7 @@ class Register extends React.Component {
             onChange={(e) => this.setState({ name: e.target.value })} /></div>
           <div>パスワード<input type="password" name="password" value={this.state.password}
             onChange={(e) => this.setState({ password: e.target.value })} /></div>
-          <div><input type="submit" name="register" /></div>
+          <div><input type="submit" name="register" disabled={!this.state.submit_able}/></div>
         </form>
       </div>
     );

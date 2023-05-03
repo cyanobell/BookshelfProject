@@ -6,11 +6,15 @@ class Login extends React.Component {
     this.state = {
       login_state_text: '',
       password: '',
-      name: ''
+      name: '',
+      submit_able: true
     };
   }
   render() {
     const handleSubmit = async e => {
+      this.setState({
+        submit_able: false
+      });
       let send_data = {
         name: this.state.name,
         pass: this.state.password
@@ -37,6 +41,9 @@ class Login extends React.Component {
       } catch (error) {
         console.error('エラーが発生しました', error);
       }
+      this.setState({
+        submit_able: true
+      });
     };
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, this.state.login_state_text), /*#__PURE__*/React.createElement("form", {
       onSubmit: handleSubmit
@@ -56,7 +63,8 @@ class Login extends React.Component {
       })
     })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
       type: "submit",
-      name: "login"
+      name: "login",
+      disabled: !this.state.submit_able
     }))));
   }
 }
