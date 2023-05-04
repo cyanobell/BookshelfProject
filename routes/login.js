@@ -16,6 +16,7 @@ router.get('/', (req, res) => {
 router.post('/', async (req, res) => {
     const connection = req.app.locals.connection;
     const in_data = req.body;
+  
     if(req.session.reCaptchaToken === undefined){
         if (await reCaptchaSubmit(secretKey, req.body.recaptchaResponse) === false) {
             res.json({ text: 'captchaFailed' });
@@ -23,27 +24,33 @@ router.post('/', async (req, res) => {
         }
         req.session.reCaptchaToken = req.body.recaptchaResponse;
     }
-    connection.query('SELECT * FROM users', async (error, users) => {
-        let login_success = false;
-        for (const user of users) {
-            let pass_compare_rlt = await bcrypt.compare(in_data.pass, user.pass);
-            if (in_data.name === user.name && pass_compare_rlt) {
-                req.session.regenerate((err) => {
-                    req.session.user_id = user.id;
-                    req.session.username = user.name;
-                    res.json({ text: 'success' });
-                });
-                console.log(user.name + ' is login');
-                login_success = true;
-                return;
-            }
-        };
-        if (!login_success) {
+    if(!in_data.name || !in_data.pass){
+        res.json({ text: 'The name or pass is empty.' });
+        return;
+    }
+    try {
+        const users = await connection.queryAsync('SELECT * FROM users WHERE name = ?', [in_data.name]);
+        if (users.length !== 1 || !bcrypt.compare(in_data.pass, users[0].pass)) {
             res.json({ text: 'user or password is wrong' });
             console.log("login failed");
-            console.log(req.body.name);
+            console.log(req.body);
+            return;
         }
-    });
+
+        const user = users[0];
+        console.log(user.name + ' is login');
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error(err);
+            }
+            req.session.user_id = user.id;
+            req.session.username = user.name;
+            res.json({ text: 'success' });
+        });
+
+    } catch (error) {
+        console.error(error);
+    }
 });
 
 module.exports = router;

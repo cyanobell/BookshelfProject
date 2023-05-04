@@ -3,13 +3,18 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
+    const connection = req.app.locals.connection;
     const crientDirectry = req.app.locals.crientDirectry;
-    if (req.session.username !== undefined) {
-        console.log(req.session.username + ' is home');
+    try {
+        const users = await connection.queryAsync('SELECT * FROM users WHERE id = ? AND name = ?', [req.session.user_id, req.session.username]);
+        if (users.length !== 1) {
+            res.redirect('/');
+            return;
+        }
         res.sendFile(path.join(__dirname, '..', crientDirectry, 'home.html'));
-    } else {
-        res.redirect('/');
+    } catch (error) {
+        console.error(error);
     }
 });
 

@@ -36,11 +36,11 @@ class Bookshelf extends React.Component {
       books: [],
       mode_state: 0
     };
-    this.loadIsbn();
+    this.loadBooks();
   }
-  loadIsbn = async () => {
+  loadBooks = async () => {
     try {
-      const books = await CallAPIRapper.loadIsbn();
+      const books = await CallAPIRapper.loadBooks();
       this.setState({
         books: books
       });
@@ -48,7 +48,7 @@ class Bookshelf extends React.Component {
       console.error(error);
     }
   };
-  registerIsbn = async inputingIsbn => {
+  registerNewBook = async inputingIsbn => {
     try {
       if (inputingIsbn.length === 0) {
         this.setState({
@@ -56,7 +56,7 @@ class Bookshelf extends React.Component {
         });
         return;
       }
-      const json = await CallAPIRapper.registerIsbn(inputingIsbn);
+      const json = await CallAPIRapper.registerNewIsbn(inputingIsbn);
       console.log("res: " + json.text);
       if (json.text === 'success') {
         this.setState({
@@ -88,9 +88,9 @@ class Bookshelf extends React.Component {
       });
     }
   };
-  changeReadState = async (index, new_read_state) => {
+  changeBookReadState = async (index, new_read_state) => {
     try {
-      const json = await CallAPIRapper.changeReadState(this.state.books[index], new_read_state);
+      const json = await CallAPIRapper.changeBookReadState(this.state.books[index], new_read_state);
       console.log("res: " + json.text);
       if (json.text === 'success') {
         this.setState({
@@ -112,7 +112,7 @@ class Bookshelf extends React.Component {
         });
       } else {
         this.setState({
-          server_response: 'サーバーエラーです。登録できませんでした。'
+          server_response: 'サーバーエラーです。変更できませんでした。'
         });
       }
     } catch (error) {
@@ -135,7 +135,7 @@ class Bookshelf extends React.Component {
         });
       } else {
         this.setState({
-          server_response: 'サーバーエラーです。登録できませんでした。'
+          server_response: 'サーバーエラーです。削除できませんでした。'
         });
       }
     } catch (error) {
@@ -147,10 +147,7 @@ class Bookshelf extends React.Component {
   };
   shareUrlCopyToCrip = async () => {
     try {
-      const response = await fetch(`/api/get_user_id`, {
-        method: 'GET'
-      });
-      const json = await response.json();
+      const json = await CallAPIRapper.getLoginingUserId();
       const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         console.log(shareUrl + " was copyed");
@@ -178,7 +175,7 @@ class Bookshelf extends React.Component {
           });
         case 1:
           return /*#__PURE__*/React.createElement(BookAddState, {
-            submitOnClick: this.registerIsbn,
+            submitOnClick: this.registerNewBook,
             books: this.state.books
           });
         case 2:
@@ -187,7 +184,7 @@ class Bookshelf extends React.Component {
             changeReadState: index => {
               let read_state = this.state.books[index].read_state;
               let new_read_state = read_state < 2 ? read_state + 1 : 0;
-              this.changeReadState(index, new_read_state);
+              this.changeBookReadState(index, new_read_state);
             }
           });
         case 3:

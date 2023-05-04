@@ -7,24 +7,17 @@ class Bookshelf extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            server_response: '',
-            inputingIsbn: '',
             books: [],
-            bookDetails: [],
-            mode_state: 0,
             user_name:''
         };
-        this.loadIsbn();
+        this.loadBooks();
     }
 
-    async loadIsbn() {
+    async loadBooks() {
         const path = window.location.pathname;
         const shared_id = path.split('/')[2];
         try {
-            const response = await fetch(`/api/get_shared_books/${shared_id}`, {
-                method: 'GET',
-            });
-            const books = await response.json();
+            const books = await CallAPIRapper.loadBooksWithSharedId(shared_id);
             for(const book of books){
                 book.detail = await getBookJson(book.isbn);
             }
