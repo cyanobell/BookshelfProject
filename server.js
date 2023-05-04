@@ -1,28 +1,24 @@
 'use strict';
+const helmet = require('helmet');
 const fs = require('fs');
 const express = require('express');
 const mysql = require('mysql');
 const util = require('util');
 const bodyParser = require('body-parser');
-const session = require('express-session');
-const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
 const https = require('https');
+const session = require('express-session');
 
 const port = 3000;
 const saltRounds = 10;
 const crientDirectry = '/bookshelf_app';
 
-const sess = {
-  secret: session_pass,
-  cookie: { maxAge: 60000 },
-  resave: false,
-  saveUninitialized: false,
-}
+const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
+const MySQLStore = require('express-mysql-session')(session);
 
 const https_options = {
   key: fs.readFileSync('.ssh/localhost.key'),
   cert: fs.readFileSync('.ssh/localhost.crt')
-};
+}
 
 const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
 const connection = mysql.createConnection({
@@ -31,6 +27,36 @@ const connection = mysql.createConnection({
   password: spl_pass,
   database: 'books_app'
 });
+
+const sessionStore = new MySQLStore({
+  user: 'root',
+  password: spl_pass,
+  database: 'books_app',
+  host: 'localhost',
+  clearExpired: true,
+  checkExpirationInterval: 15 * 60 * 1000,//15min
+  expiration: 24 * 60 * 60 * 1000,//1day
+  createDatabaseTable: true,
+  schema: {
+    tableName: 'sessions',
+    columnNames: {
+      session_id: 'session_id',
+      expires: 'expires',
+      data: 'data'
+    }
+  }
+});
+
+const sessionConfig = {
+  secret: session_pass,
+  resave: false,
+  saveUninitialized: true,
+  store: sessionStore,
+  cookie: {
+    secure: true,
+    maxAge: 60 * 1000
+  }
+}
 
 connection.connect((err) => {
   if (err) {
@@ -42,6 +68,7 @@ connection.connect((err) => {
 connection.queryAsync = util.promisify(connection.query).bind(connection);
 
 const app = express();
+app.use(helmet());
 app.use((req, res, next) => {
   req.app.locals.connection = connection;
   req.app.locals.saltRounds = saltRounds;
@@ -50,7 +77,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static(__dirname + crientDirectry));
-app.use(session(sess));
+app.use(session(sessionConfig));
 
 app.use(bodyParser.json());
 if (app.get('env') === 'production') {
