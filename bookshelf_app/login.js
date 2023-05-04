@@ -6,14 +6,32 @@ class Login extends React.Component {
     this.state = {
       login_state_text: '',
       password: '',
-      name: ''
+      name: '',
+      submit_able: true,
+      recaptchaResponse: null
     };
+    grecaptcha.ready(() => {
+      grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
+        action: 'login'
+      }).then(token => {
+        let recaptchaResponse = document.getElementById('g-recaptcha-response');
+        recaptchaResponse.value = token;
+        this.setState({
+          recaptchaResponse: recaptchaResponse
+        });
+        console.log(this.state);
+      });
+    });
   }
   render() {
     const handleSubmit = async e => {
+      this.setState({
+        submit_able: false
+      });
       let send_data = {
         name: this.state.name,
-        pass: this.state.password
+        pass: this.state.password,
+        recaptchaResponse: this.state.recaptchaResponse.value
       };
       e.preventDefault();
       try {
@@ -31,6 +49,9 @@ class Login extends React.Component {
           this.setState({
             login_state_text: 'ログインに失敗しました'
           });
+        } else if (json.text === 'captchaFailed') {
+          this.setState({
+            login_state_text: 'reCAPTCHAの認証に失敗しました'
         } else if (json.text === 'The name or pass is empty.') {
           this.setState({
             login_state_text: 'ユーザー名かパスワードが空です'
@@ -41,6 +62,9 @@ class Login extends React.Component {
       } catch (error) {
         console.error('エラーが発生しました', error);
       }
+      this.setState({
+        submit_able: true
+      });
     };
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, this.state.login_state_text), /*#__PURE__*/React.createElement("form", {
       onSubmit: handleSubmit
@@ -58,9 +82,14 @@ class Login extends React.Component {
       onChange: e => this.setState({
         password: e.target.value
       })
-    })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
+    })), /*#__PURE__*/React.createElement("input", {
+      type: "hidden",
+      name: "g-recaptcha-response",
+      id: "g-recaptcha-response"
+    }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("input", {
       type: "submit",
-      name: "login"
+      name: "login",
+      disabled: !this.state.submit_able
     }))));
   }
 }

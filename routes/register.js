@@ -4,6 +4,10 @@ const router = express.Router();
 const path = require('path');
 const bcrypt = require('bcrypt');
 
+const fs = require('fs');
+const secretKey = fs.readFileSync('.secretkeys/google_reCAPTCHA', 'utf-8').trim();
+const reCaptchaSubmit = require('./reCaptchaSubmit.js');
+
 //show register
 router.get('/', (req, res) => {
     const crientDirectry = req.app.locals.crientDirectry;
@@ -15,6 +19,14 @@ router.post('/', async (req, res) => {
     const connection = req.app.locals.connection;
     const saltRounds = req.app.locals.saltRounds;
     const in_data = req.body;
+  
+    if(req.session.reCaptchaToken === undefined){
+        if (await reCaptchaSubmit(secretKey, req.body.recaptchaResponse) === false) {
+            res.json({ text: 'captchaFailed' });
+            return;
+        }
+        req.session.reCaptchaToken = req.body.recaptchaResponse;
+    }
     if(!in_data.name || !in_data.pass){
         res.json({ text: 'The name or pass is empty.' });
         return;
