@@ -31,6 +31,10 @@ class Register extends React.Component {
           this.setState({
             login_state_text: 'その名前はすでに登録されています'
           });
+        } else if (json.text === 'The name or pass is empty.') {
+          this.setState({
+            login_state_text: 'ユーザー名かパスワードが空です'
+          });
         } else if (json.text === 'success') {
           location.href = '/home';
         }
