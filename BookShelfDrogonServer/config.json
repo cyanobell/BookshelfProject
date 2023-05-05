@@ -1,0 +1,31 @@
+{
+  "listeners": [
+    {
+      "address": "0.0.0.0",
+      "port": 3000,
+      "https": false,
+      "cert": "",
+      "key": ""
+    }
+  ],
+  "enable_session": true,
+  "session_timeout": 1200,
+  "document_root": "../../",
+  "upload_path":"../../bookshelf_app",
+  "file_types": [
+    "gif",
+    "png",
+    "jpg",
+    "js",
+    "css",
+    "html",
+    "ico",
+    "swf",
+    "xap",
+    "apk",
+    "cur",
+    "xml"
+  ],
+  "use_sendfile": true
+
+}
