@@ -19,7 +19,6 @@ class Login extends React.Component {
         this.setState({
           recaptchaResponse: recaptchaResponse
         });
-        console.log(this.state);
       });
     });
   }
@@ -52,6 +51,7 @@ class Login extends React.Component {
         } else if (json.text === 'captchaFailed') {
           this.setState({
             login_state_text: 'reCAPTCHAの認証に失敗しました'
+          });
         } else if (json.text === 'The name or pass is empty.') {
           this.setState({
             login_state_text: 'ユーザー名かパスワードが空です'

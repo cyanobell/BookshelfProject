@@ -15,7 +15,6 @@ class Login extends React.Component {
         let recaptchaResponse = document.getElementById('g-recaptcha-response');
         recaptchaResponse.value = token;
         this.setState({recaptchaResponse: recaptchaResponse});
-        console.log(this.state);
       });
     });
   }
@@ -63,7 +62,6 @@ class Login extends React.Component {
             <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response"></input>
             <div><input type="submit" name="login" disabled={!this.state.submit_able}/></div>
         </form>
-
       </div>
     );
   }

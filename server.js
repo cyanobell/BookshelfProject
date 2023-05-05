@@ -12,7 +12,7 @@ const port = 3000;
 const saltRounds = 10;
 const crientDirectry = '/bookshelf_app';
 
-const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
+const session_pass = fs.readFileSync('./.secretkeys/session_passfile', 'utf-8').trim();
 const MySQLStore = require('express-mysql-session')(session);
 
 const https_options = {
@@ -20,7 +20,7 @@ const https_options = {
   cert: fs.readFileSync('.ssh/localhost.crt')
 }
 
-const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
+const spl_pass = fs.readFileSync('./.secretkeys/sql_passfile', 'utf-8').trim();
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -68,7 +68,19 @@ connection.connect((err) => {
 connection.queryAsync = util.promisify(connection.query).bind(connection);
 
 const app = express();
-app.use(helmet());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https://www.google.com", "https://api.openbd.jp"],
+      scriptSrc: ["'self'", "https://unpkg.com", "https://www.google.com",  "https://www.gstatic.com", "'unsafe-inline'"],
+      frameSrc: ["'self'", "https://www.google.com"],
+      imgSrc: ["'self'", "data:", "https://cover.openbd.jp"],
+    }
+  })
+);
+
 app.use((req, res, next) => {
   req.app.locals.connection = connection;
   req.app.locals.saltRounds = saltRounds;

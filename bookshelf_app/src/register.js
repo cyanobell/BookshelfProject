@@ -16,7 +16,6 @@ class Register extends React.Component {
         let recaptchaResponse = document.getElementById('g-recaptcha-response');
         recaptchaResponse.value = token;
         this.setState({recaptchaResponse: recaptchaResponse});
-        console.log(this.state);
       });
     });
   }
