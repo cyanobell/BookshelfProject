@@ -68,7 +68,19 @@ connection.connect((err) => {
 connection.queryAsync = util.promisify(connection.query).bind(connection);
 
 const app = express();
-app.use(helmet());
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", "https://www.google.com", "https://api.openbd.jp"],
+      scriptSrc: ["'self'", "https://unpkg.com", "https://www.google.com",  "https://www.gstatic.com", "'unsafe-inline'"],
+      frameSrc: ["'self'", "https://www.google.com"],
+      imgSrc: ["'self'", "data:", "https://cover.openbd.jp"],
+    }
+  })
+);
+
 app.use((req, res, next) => {
   req.app.locals.connection = connection;
   req.app.locals.saltRounds = saltRounds;
