@@ -12,7 +12,7 @@ const port = 3000;
 const saltRounds = 10;
 const crientDirectry = '/bookshelf_app';
 
-const session_pass = fs.readFileSync('session_passfile', 'utf-8').trim();
+const session_pass = fs.readFileSync('./.secretkeys/session_passfile', 'utf-8').trim();
 const MySQLStore = require('express-mysql-session')(session);
 
 const https_options = {
@@ -20,7 +20,7 @@ const https_options = {
   cert: fs.readFileSync('.ssh/localhost.crt')
 }
 
-const spl_pass = fs.readFileSync('sql_passfile', 'utf-8').trim();
+const spl_pass = fs.readFileSync('./.secretkeys/sql_passfile', 'utf-8').trim();
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
