@@ -1,6 +1,5 @@
 #pragma once
 #include <drogon/HttpController.h>
-#include <string>
 
 class SharedBooksCtrl : public drogon::HttpController<SharedBooksCtrl>
 {

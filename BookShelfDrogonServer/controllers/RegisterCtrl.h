@@ -5,8 +5,6 @@ class RegisterCtrl : public drogon::HttpController<RegisterCtrl>
 {
   constexpr static const char *html_filename = "../../bookshelf_app/register.html";
 public:
-  RegisterCtrl() : drogon::HttpController<RegisterCtrl>()
-  {}
 
   METHOD_LIST_BEGIN
   ADD_METHOD_TO(RegisterCtrl::get,"/register", drogon::Get);

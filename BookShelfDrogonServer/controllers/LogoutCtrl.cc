@@ -2,7 +2,7 @@
 #include "SESSION_VALUENAMES.h"
 
 using namespace drogon;
-void LogoutCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
+void LogoutCtrl::asyncHandleHttpRequest(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
   const auto session = req->session();
 

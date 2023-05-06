@@ -1,16 +1,13 @@
 #pragma once
-#include <drogon/HttpController.h>
+#include <drogon/HttpSimpleController.h>
 
-class LogoutCtrl : public drogon::HttpController<LogoutCtrl>
+class LogoutCtrl : public drogon::HttpSimpleController<LogoutCtrl>
 {
   constexpr static const char *html_filename = "../../bookshelf_app/home.html";
 public:
-  LogoutCtrl() : drogon::HttpController<LogoutCtrl>()
-  {}
+  virtual void asyncHandleHttpRequest(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback);
 
-  METHOD_LIST_BEGIN
-  ADD_METHOD_TO(LogoutCtrl::get,"/logout", drogon::Get);
-  METHOD_LIST_END
-
-  void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
+  PATH_LIST_BEGIN
+  PATH_ADD("/logout", drogon::Get);
+  PATH_LIST_END
 };
