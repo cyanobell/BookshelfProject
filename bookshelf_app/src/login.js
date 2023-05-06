@@ -35,16 +35,17 @@ class Login extends React.Component {
           body: JSON.stringify(send_data),
         });
 
-        const json = await response.json();
-        console.log("res: " + json.text);
-        if (json.text === 'user or password is wrong') {
-          this.setState({ login_state_text: 'ログインに失敗しました' });
-        } else if (json.text === 'captchaFailed') {
-          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
-        } else if (json.text === 'The name or pass is empty.') {
-          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
-        } else if (json.text === 'success') {
+        if(response.ok){
           location.href = '/home';
+          return;
+        }
+        const error_detail = await response.text();
+        if (error_detail === 'user or password is wrong') {
+          this.setState({ login_state_text: 'ログインに失敗しました' });
+        } else if (error_detail=== 'captchaFailed') {
+          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
+        } else if (error_detail === 'The name or pass is empty.') {
+          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
         }
       } catch (error) {
         console.error('エラーが発生しました', error);

@@ -4,3 +4,4 @@
 /.vscode/
 BookShelfDrogonServer/build/*
 !/BookShelfDrogonServer/build/makeAndRun.sh
+!/BookShelfDrogonServer/build/makeAndDebug.sh

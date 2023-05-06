@@ -1,4 +1,30 @@
 {
+  "app": {
+    "enable_session": true,
+    "session_timeout": 1200,
+    "threads_num": 0,
+    "use_sendfile": true,
+    "document_root": "../../bookshelf_app",
+    "home_page": "index.html",
+    "implicit_page": " index.html ",
+    "file_types": [
+      "gif",
+      "png",
+      "jpg",
+      "js",
+      "css",
+      "html",
+      "ico",
+      "swf",
+      "xap",
+      "apk",
+      "cur",
+      "xml"
+    ],
+    "log": {
+      "log_level": "TRACE"
+    }
+  },
   "listeners": [
     {
       "address": "0.0.0.0",
@@ -7,25 +33,5 @@
       "cert": "../../.ssh/localhost.crt",
       "key": "../../.ssh/localhost.key"
     }
-  ],
-  "enable_session": true,
-  "session_timeout": 1200,
-  "document_root": "../../",
-  "upload_path":"../../bookshelf_app",
-  "file_types": [
-    "gif",
-    "png",
-    "jpg",
-    "js",
-    "css",
-    "html",
-    "ico",
-    "swf",
-    "xap",
-    "apk",
-    "cur",
-    "xml"
-  ],
-  "use_sendfile": true
-
+  ]
 }
