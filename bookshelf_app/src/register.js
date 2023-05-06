@@ -27,7 +27,7 @@ class Register extends React.Component {
 
       let send_data = { name: this.state.name, pass: this.state.password, recaptchaResponse: this.state.recaptchaResponse.value };
       try {
-        const response = await fetch('/register', {
+        const response = await fetch('/login', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -36,17 +36,21 @@ class Register extends React.Component {
           body: JSON.stringify(send_data),
         });
 
-        const json = await response.json();
-        console.log("res: " + json.text);
-        if (json.text === 'The name is already registered.') {
-          this.setState({ login_state_text: 'その名前はすでに登録されています' });
-        } else if (json.text === 'captchaFailed') {
-          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
-        } else if (json.text === 'The name or pass is empty.') {
-          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
-        } else if (json.text === 'success') {
+        if(response.ok){
           location.href = '/home';
+          return;
         }
+
+        const error_detail = await response.text();
+        console.log("res: " + error_detail);
+        if (error_detail === 'The name is already registered.') {
+          this.setState({ login_state_text: 'その名前はすでに登録されています' });
+        } else if (error_detail === 'captchaFailed') {
+          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
+        } else if (error_detail === 'The name or pass is empty.') {
+          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
+        }
+
       } catch (error) {
         console.error('Error:', error);
       }

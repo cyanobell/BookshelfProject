@@ -26,6 +26,7 @@ void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const Ht
   }
   LOG_DEBUG << "login: " << name;
   const auto session = req->session();
+  session->clear();
   session->changeSessionIdToClient();
   session->insert(VALUE_NAME::USER_ID, 3);
   session->insert(VALUE_NAME::USER_NAME, name);
