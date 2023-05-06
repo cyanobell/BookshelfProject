@@ -14,17 +14,17 @@ void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const Ht
   auto jsonData = req->jsonObject();
   std::string name = (*jsonData)["name"].asString();
   std::string pass = (*jsonData)["pass"].asString();
-  LOG_DEBUG << "name: " << name;
-  LOG_DEBUG << "pass: " << pass;
   // fake login
   if (false)
   {
+    LOG_DEBUG << "login failed: " << name;
     res->setContentTypeCode(CT_TEXT_PLAIN);
     res->setBody("user or password is wrong");
     res->setStatusCode(k401Unauthorized);
     callback(res);
     return;
   }
+  LOG_DEBUG << "login: " << name;
   req->session()->insert(VALUE_NAME::USER_ID, 3);
   req->session()->insert(VALUE_NAME::USER_NAME, name);
   res->setStatusCode(k200OK);
