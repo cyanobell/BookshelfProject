@@ -11,13 +11,14 @@ void LoginCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResp
 
 void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
-  std::string name = req->getParameter("name");
-  std::string pass = req->getParameter("pass");
   HttpResponsePtr res = HttpResponse::newHttpResponse();
-  LOG_DEBUG << name;
-  LOG_DEBUG << pass;
+  auto jsonData = req->jsonObject();
+  std::string name = (*jsonData)["name"].asString();
+  std::string pass = (*jsonData)["pass"].asString();
+  LOG_DEBUG << "name: " << name;
+  LOG_DEBUG << "pass: " << pass;
   // fake login
-  if (true)
+  if (false)
   {
     res->setContentTypeCode(CT_TEXT_PLAIN);
     res->setBody("user or password is wrong");
