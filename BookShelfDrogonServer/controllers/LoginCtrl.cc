@@ -1,10 +1,9 @@
 #include "LoginCtrl.h"
+#include "SESSION_VALUENAMES.h"
 
 using namespace drogon;
-// Add definition of your processing function here
 void LoginCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
-  LOG_DEBUG << html_filename;
   auto res = HttpResponse::newFileResponse(html_filename);
   callback(res);
 }
@@ -26,8 +25,8 @@ void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const Ht
     callback(res);
     return;
   }
-  req->session()->insert("user_id", 3);
-  req->session()->insert("name", name);
+  req->session()->insert(VALUE_NAME::USER_ID, 3);
+  req->session()->insert(VALUE_NAME::USER_NAME, name);
   res->setStatusCode(k200OK);
   callback(res);
 } /*
