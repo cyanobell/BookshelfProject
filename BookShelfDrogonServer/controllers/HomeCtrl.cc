@@ -4,18 +4,20 @@
 using namespace drogon;
 void HomeCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
-  auto session = req->session();
+  const auto session = req->session();
 
-  auto user_id = session->getOptional<int>(VALUE_NAME::USER_ID);
-  auto user_name = session->getOptional<std::string>(VALUE_NAME::USER_NAME);
 
-  if (user_id == nullopt || user_name == nullopt)
+  const bool user_id_exist = session->find(VALUE_NAME::USER_ID);
+  const bool user_name_exist = session->find(VALUE_NAME::USER_NAME);
+  if (!user_id_exist || !user_name_exist)
   { // ログインしていない。
-    auto res = HttpResponse::newRedirectionResponse("/");
+    const auto res = HttpResponse::newRedirectionResponse("/");
     callback(res);
     return;
   }
+  const auto user_id = session->get<int>(VALUE_NAME::USER_ID);
+  const auto user_name = session->get<std::string>(VALUE_NAME::USER_NAME);
 
-  auto res = HttpResponse::newFileResponse(html_filename);
+  const auto res = HttpResponse::newFileResponse(html_filename);
   callback(res);
 }

@@ -11,7 +11,7 @@ void LoginCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResp
 void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
   HttpResponsePtr res = HttpResponse::newHttpResponse();
-  auto jsonData = req->jsonObject();
+  const auto jsonData = req->jsonObject();
   std::string name = (*jsonData)["name"].asString();
   std::string pass = (*jsonData)["pass"].asString();
   // fake login
@@ -25,8 +25,10 @@ void LoginCtrl::fakeLogin(const HttpRequestPtr &req, std::function<void(const Ht
     return;
   }
   LOG_DEBUG << "login: " << name;
-  req->session()->insert(VALUE_NAME::USER_ID, 3);
-  req->session()->insert(VALUE_NAME::USER_NAME, name);
+  const auto session = req->session();
+  session->changeSessionIdToClient();
+  session->insert(VALUE_NAME::USER_ID, 3);
+  session->insert(VALUE_NAME::USER_NAME, name);
   res->setStatusCode(k200OK);
   callback(res);
 } /*
