@@ -2,5 +2,5 @@
 /.secretkeys/
 /.ssh/
 /.vscode/
-/BookShelfDrogonServer/build/
+BookShelfDrogonServer/build/*
 !/BookShelfDrogonServer/build/makeAndRun.sh
