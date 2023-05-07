@@ -12,7 +12,7 @@ class Register extends React.Component {
     };
     grecaptcha.ready(() => {
       grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
-        action: 'login'
+        action: 'register'
       }).then(token => {
         let recaptchaResponse = document.getElementById('g-recaptcha-response');
         recaptchaResponse.value = token;
@@ -34,7 +34,7 @@ class Register extends React.Component {
         recaptchaResponse: this.state.recaptchaResponse.value
       };
       try {
-        const response = await fetch('/login', {
+        const response = await fetch('/register', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -48,17 +48,21 @@ class Register extends React.Component {
         }
         const error_detail = await response.text();
         console.log("res: " + error_detail);
-        if (error_detail === 'The name is already registered.') {
+        if (error_detail === 'The name is already registered') {
           this.setState({
             login_state_text: 'その名前はすでに登録されています'
           });
-        } else if (error_detail === 'captchaFailed') {
+        } else if (error_detail === 'reCaptchaFailed') {
           this.setState({
             login_state_text: 'reCAPTCHAの認証に失敗しました'
           });
-        } else if (error_detail === 'The name or pass is empty.') {
+        } else if (error_detail === 'The name or pass is empty') {
           this.setState({
             login_state_text: 'ユーザー名かパスワードが空です'
+          });
+        } else {
+          this.setState({
+            login_state_text: 'サーバーエラーです 時間をおいて再接続してください'
           });
         }
       } catch (error) {

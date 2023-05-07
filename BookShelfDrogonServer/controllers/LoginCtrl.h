@@ -7,9 +7,9 @@ class LoginCtrl : public drogon::HttpController<LoginCtrl>
 public:
   METHOD_LIST_BEGIN
   ADD_METHOD_TO(LoginCtrl::get,"/login", drogon::Get);
-  ADD_METHOD_TO(LoginCtrl::fakeLogin,"/login", drogon::Post);
+  ADD_METHOD_TO(LoginCtrl::loginUser,"/login", drogon::Post);
   METHOD_LIST_END
 
   void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
-  void fakeLogin(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
+  void loginUser(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
 };

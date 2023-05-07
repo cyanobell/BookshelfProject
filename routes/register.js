@@ -28,13 +28,13 @@ router.post('/', async (req, res) => {
     req.session.reCaptchaToken = req.body.recaptchaResponse;
   }
   if (!in_data.name || !in_data.pass) {
-    res.json({ text: 'The name or pass is empty.' });
+    res.json({ text: 'The name or pass is empty' });
     return;
   }
   try {
     const users = await connection.queryAsync('SELECT * FROM users WHERE name = ?', [in_data.name]);
     if (users.length !== 0) {
-      res.json({ text: 'The name is already registered.' });
+      res.json({ text: 'The name is already registered' });
       return;
     }
     const hashedPassword = await bcrypt.hash(req.body.pass, saltRounds);

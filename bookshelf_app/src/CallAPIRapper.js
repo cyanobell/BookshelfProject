@@ -7,6 +7,7 @@ const CallAPIRapper = {
       const response = await fetch(`/api/get_have_books`, {
         method: 'GET',
       });
+      console.log(response);
       const books = await response.json();
       for (const book of books) {
         book.detail = await getBookJson(book.isbn);

@@ -8,10 +8,10 @@ public:
 
   METHOD_LIST_BEGIN
   ADD_METHOD_TO(RegisterCtrl::get,"/register", drogon::Get);
-  ADD_METHOD_TO(RegisterCtrl::fakeRegister,"/register", drogon::Post);
+  ADD_METHOD_TO(RegisterCtrl::registerUser,"/register", drogon::Post);
   METHOD_LIST_END
 
   void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
-  void fakeRegister(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
+  void registerUser(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback)const;
 };
 

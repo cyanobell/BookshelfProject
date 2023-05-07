@@ -8,6 +8,7 @@ const CallAPIRapper = {
         method: 'GET'
       });
       const books = await response.json();
+      console.log(books);
       for (const book of books) {
         book.detail = await getBookJson(book.isbn);
       }

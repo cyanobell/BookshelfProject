@@ -42,10 +42,12 @@ class Login extends React.Component {
         const error_detail = await response.text();
         if (error_detail === 'user or password is wrong') {
           this.setState({ login_state_text: 'ログインに失敗しました' });
-        } else if (error_detail=== 'captchaFailed') {
+        } else if (error_detail=== 'reCaptchaFailed') {
           this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
-        } else if (error_detail === 'The name or pass is empty.') {
+        } else if (error_detail === 'The name or pass is empty') {
           this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
+        } else {
+          this.setState({ login_state_text: 'サーバーエラーです 時間をおいて再接続してください' });
         }
       } catch (error) {
         console.error('エラーが発生しました', error);

@@ -1,20 +1,27 @@
 #pragma once
-
 #include <drogon/HttpController.h>
-
-using namespace drogon;
 
 class ApiCtrl : public drogon::HttpController<ApiCtrl>
 {
-  public:
-    METHOD_LIST_BEGIN
-    // use METHOD_ADD to add your custom processing function here;
-    // METHOD_ADD(ApiCtrl::get, "/{2}/{1}", Get); // path is /ApiCtrl/{arg2}/{arg1}
-    // METHOD_ADD(ApiCtrl::your_method_name, "/{1}/{2}/list", Get); // path is /ApiCtrl/{arg1}/{arg2}/list
-    // ADD_METHOD_TO(ApiCtrl::your_method_name, "/absolute/path/{1}/{2}/list", Get); // path is /absolute/path/{arg1}/{arg2}/list
+  bool checkIsValidISBN(const std::string&  isbn_str) const;
+  bool checkEditPermission(const Json::Value &book,const Json::Value &session) const;
+  bool checkExistBook(const Json::Value &book) const;
 
-    METHOD_LIST_END
-    // your declaration of processing function maybe like this:
-    // void get(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, int p1, std::string p2);
-    // void your_method_name(const HttpRequestPtr& req, std::function<void (const HttpResponsePtr &)> &&callback, double p1, int p2) const;
+public:
+  METHOD_LIST_BEGIN
+  ADD_METHOD_TO(ApiCtrl::getHaveBooks, "/api/get_have_books", drogon::Get);
+  ADD_METHOD_TO(ApiCtrl::getUserId, "/api/get_user_id", drogon::Get);
+  ADD_METHOD_TO(ApiCtrl::registerBook, "/api/register_book", drogon::Post);
+  ADD_METHOD_TO(ApiCtrl::changeReadState, "/api/change_read_state", drogon::Post);
+  ADD_METHOD_TO(ApiCtrl::deleteBook, "/api/delete_book", drogon::Post);
+  ADD_METHOD_TO(ApiCtrl::getSharedBooks, "/api/get_shared_books/{user_id}", drogon::Post);
+  ADD_METHOD_TO(ApiCtrl::getUserNameToId, "/api/get_user_name_to_id/{user_id}", drogon::Post);
+  METHOD_LIST_END
+  void getHaveBooks(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void getUserId(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void registerBook(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void changeReadState(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void deleteBook(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void getSharedBooks(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, std::string user_id) const;
+  void getUserNameToId(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, std::string user_id) const;
 };
