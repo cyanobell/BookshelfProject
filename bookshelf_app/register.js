@@ -7,20 +7,8 @@ class Register extends React.Component {
       login_state_text: '',
       password: '',
       name: '',
-      submit_able: true,
-      recaptchaResponse: null
+      submit_able: true
     };
-    grecaptcha.ready(() => {
-      grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
-        action: 'register'
-      }).then(token => {
-        let recaptchaResponse = document.getElementById('g-recaptcha-response');
-        recaptchaResponse.value = token;
-        this.setState({
-          recaptchaResponse: recaptchaResponse
-        });
-      });
-    });
   }
   render() {
     const handleSubmit = async e => {
@@ -28,12 +16,16 @@ class Register extends React.Component {
         submit_able: false
       });
       e.preventDefault();
-      let send_data = {
-        name: this.state.name,
-        pass: this.state.password,
-        recaptchaResponse: this.state.recaptchaResponse.value
-      };
       try {
+        await new Promise(resolve => grecaptcha.ready(resolve));
+        const recaptchaToken = await grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
+          action: 'register'
+        });
+        let send_data = {
+          name: this.state.name,
+          pass: this.state.password,
+          recaptchaToken: recaptchaToken
+        };
         const response = await fetch('/register', {
           method: 'POST',
           headers: {

@@ -7,33 +7,25 @@ class Login extends React.Component {
       login_state_text: '',
       password: '',
       name: '',
-      submit_able: true,
-      recaptchaResponse: null
+      submit_able: true
     };
-    grecaptcha.ready(() => {
-      grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
-        action: 'login'
-      }).then(token => {
-        let recaptchaResponse = document.getElementById('g-recaptcha-response');
-        recaptchaResponse.value = token;
-        this.setState({
-          recaptchaResponse: recaptchaResponse
-        });
-      });
-    });
   }
   render() {
     const handleSubmit = async e => {
       this.setState({
         submit_able: false
       });
-      let send_data = {
-        name: this.state.name,
-        pass: this.state.password,
-        recaptchaResponse: this.state.recaptchaResponse.value
-      };
       e.preventDefault();
       try {
+        await new Promise(resolve => grecaptcha.ready(resolve));
+        const recaptchaToken = await grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
+          action: 'login'
+        });
+        let send_data = {
+          name: this.state.name,
+          pass: this.state.password,
+          recaptchaToken: recaptchaToken
+        };
         const response = await fetch('/login', {
           method: 'POST',
           headers: {

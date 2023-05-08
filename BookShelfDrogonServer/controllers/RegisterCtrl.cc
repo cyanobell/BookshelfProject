@@ -1,4 +1,6 @@
 #include "RegisterCtrl.h"
+#include "bcrypt/BCrypt.hpp"
+#include "../utils/reCaptcha.h"
 #include "JSON_VALUENAMES.h"
 
 using namespace drogon;
@@ -13,18 +15,11 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
   HttpResponsePtr res = HttpResponse::newHttpResponse();
   const auto client_ptr = drogon::app().getDbClient();
   const auto session = req->session();
-  if (!client_ptr || !client_ptr->hasAvailableConnections())
-  {
-    LOG_DEBUG << "DataBase Connect failed";
-    res->setStatusCode(k500InternalServerError);
-    callback(res);
-    return;
-  }
-  const auto jsonData = req->jsonObject();
+  const auto json_data = req->jsonObject();
 
-  if ((*jsonData)[VALUE::USER::USER_NAME].isNull() || (*jsonData)[VALUE::USER::PASS_WORD].isNull())
+  if ((*json_data)[VALUE::USER::USER_NAME].isNull() || (*json_data)[VALUE::USER::PASS_WORD].isNull())
   {
-    LOG_DEBUG << "empty input";
+    LOG_INFO << "empty input";
     res->setStatusCode(k401Unauthorized);
     res->setContentTypeCode(CT_TEXT_PLAIN);
     res->setBody("The name or pass is empty");
@@ -32,20 +27,21 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
     return;
   }
 
-  std::string name = (*jsonData)[VALUE::USER::USER_NAME].asString();
-  std::string pass = (*jsonData)[VALUE::USER::PASS_WORD].asString();
+  const std::string name = (*json_data)[VALUE::USER::USER_NAME].asString();
+  const std::string pass = (*json_data)[VALUE::USER::PASS_WORD].asString();
 
   bool isRecaptchaSuccess = false;
-  if (!(*jsonData)["recaptchaResponse"].isNull())
+  if (!(*json_data)["recaptchaToken"].isNull())
   {
-    std::string recaptchaResponse = (*jsonData)["recaptchaResponse"].asString();
+    std::string recaptchaToken = (*json_data)["recaptchaToken"].asString();
+    isRecaptchaSuccess = utilities::reCaptchaSubmit(recaptchaToken);
   }
 
-  if (false && !isRecaptchaSuccess)
-  { // googleRecaptchaの認証
+  if (!isRecaptchaSuccess)
+  {
     res->setStatusCode(k401Unauthorized);
     res->setContentTypeCode(CT_TEXT_PLAIN);
-    LOG_DEBUG << "name: " << name;
+    LOG_INFO << "reCaptchaFailed: " << name;
     res->setBody("reCaptchaFailed");
     callback(res);
     return;
@@ -56,16 +52,16 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
     const auto result = client_ptr->execSqlSync("SELECT * FROM users WHERE name = $1", name);
     if (result.size() == 1)
     {
-      LOG_DEBUG << "register failed: " << name;
+      LOG_INFO << "register failed: " << name;
       res->setStatusCode(k401Unauthorized);
       res->setContentTypeCode(CT_TEXT_PLAIN);
       res->setBody("The name is already registered");
       callback(res);
       return;
     }
-    // todo:パスのハッシュ化
-   
-    const auto insert_id =  client_ptr->execSqlSync("INSERT INTO users(name, pass) VALUES ($1, $2) RETURNING id", name, pass);
+
+    std::string hashed_pass = BCrypt::generateHash(pass);
+    const auto insert_id = client_ptr->execSqlSync("INSERT INTO users(name, pass) VALUES ($1, $2) RETURNING id", name, hashed_pass);
     LOG_DEBUG << "register success: " << name;
     session->clear();
     session->changeSessionIdToClient();
@@ -77,7 +73,7 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
   }
   catch (orm::DrogonDbException &e)
   {
-    LOG_DEBUG << "sql error: " << e.base().what();
+    LOG_INFO << "sql error: " << e.base().what();
     res->setStatusCode(k500InternalServerError);
     callback(res);
     return;

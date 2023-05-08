@@ -14,8 +14,6 @@ void HomeCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpRespo
     callback(res);
     return;
   }
-  const auto user_id = session->get<int>(VALUE::SESSION::USER_ID);
-  const auto user_name = session->get<std::string>(VALUE::SESSION::USER_NAME);
 
   const auto res = HttpResponse::newFileResponse(html_filename);
   callback(res);

@@ -8,7 +8,7 @@ class Bookshelf extends React.Component {
     super(props);
     this.state = {
       books: [],
-      user_name: ''
+      title_text: ''
     };
     this.loadBooks();
   }
@@ -16,18 +16,31 @@ class Bookshelf extends React.Component {
     const path = window.location.pathname;
     const shared_id = path.split('/')[2];
     try {
-      const books = await CallAPIRapper.loadBooksWithSharedId(shared_id);
-      for (const book of books) {
-        book.detail = await getBookJson(book.isbn);
+      const user_name_json = await CallAPIRapper.loadUsernameWithSharedId(shared_id);
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          const book_json = await CallAPIRapper.loadBooksWithSharedId(shared_id);
+          this.setState({
+            books: book_json.books
+          });
+          this.setState({
+            title_text: user_name_json.user_name + 'の本棚'
+          });
+          document.title = '技術書籍in本棚サイト-' + user_name_json.user_name + 'の本棚';
+          return;
+        case 'user is not logined':
+          this.setState({
+            title_text: 'ユーザーが見つかりませんでした。'
+          });
+          document.title = '技術書籍in本棚サイト-' + 'ユーザーが見つかりませんでした。';
+          return;
+        default:
+          this.setState({
+            title_text: 'サーバーエラーが発生しました。'
+          });
+          return;
       }
-      const user_name = await CallAPIRapper.loadUsernameWithSharedId(shared_id);
-      this.setState({
-        books: books
-      });
-      this.setState({
-        user_name: user_name
-      });
-      document.title = '技術書籍in本棚サイト-' + user_name + 'の本棚';
     } catch (error) {
       console.error(error);
     }
@@ -35,7 +48,7 @@ class Bookshelf extends React.Component {
   render() {
     return /*#__PURE__*/React.createElement("div", {
       className: "Bookshelf"
-    }, /*#__PURE__*/React.createElement("h1", null, this.state.user_name, " \u306E\u672C\u68DA"), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("h1", null, this.state.title_text, " "), /*#__PURE__*/React.createElement("div", {
       className: "ServerResponse"
     }, this.state.server_response), /*#__PURE__*/React.createElement(BookShowState, {
       books: this.state.books

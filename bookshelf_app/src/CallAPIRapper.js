@@ -1,5 +1,5 @@
 'use strict';
-import { getBookJson } from './bookUtil.js';
+import { getBookJson, checkIsValidISBN } from './bookUtil.js';
 
 const CallAPIRapper = {
   async loadBooks() {
@@ -7,13 +7,16 @@ const CallAPIRapper = {
       const response = await fetch(`/api/get_have_books`, {
         method: 'GET',
       });
-      console.log(response);
+
+      if (!response.ok) {
+        return { text: response.text() };
+      }
       const books = await response.json();
       for (const book of books) {
         book.detail = await getBookJson(book.isbn);
       }
-      return books;
-    } catch (error) {
+      return { books: books, text: 'success' };
+    } catch (error) {''
       console.error(error);
       return [];
     }
@@ -24,11 +27,14 @@ const CallAPIRapper = {
       const response = await fetch(`/api/get_shared_books/${shared_id}`, {
         method: 'GET',
       });
+      if (!response.ok) {
+        return { text: response.text() };
+      }
       const books = await response.json();
       for (const book of books) {
         book.detail = await getBookJson(book.isbn);
       }
-      return books;
+      return { books: books, text: 'success' };
     } catch (error) {
       console.error(error);
       return [];
@@ -40,8 +46,11 @@ const CallAPIRapper = {
       const response = await fetch(`/api/get_user_name_to_id/${shared_id}`, {
         method: 'GET',
       });
+      if (!response.ok) {
+        return { text: response.text() };
+      }
       const json = await response.json();
-      return json.user_name;
+      return { user_name: json.user_name, text: 'success' };
     } catch (error) {
       console.error(error);
       return [];
@@ -51,8 +60,10 @@ const CallAPIRapper = {
   async registerNewIsbn(inputingIsbn) {
     try {
       if (inputingIsbn.length === 0) {
-        this.setState({ server_response: '入力欄が空です。' });
-        return;
+        return { text: 'input is empty' };
+      }
+      if (!checkIsValidISBN(inputingIsbn)) {
+        return { text: 'isbn is too old or wrong' };
       }
       let send_data = { isbn: inputingIsbn };
       const response = await fetch('/api/register_book', {
@@ -63,14 +74,16 @@ const CallAPIRapper = {
         },
         body: JSON.stringify(send_data),
       });
-      let json = await response.json();
-      if (json.book !== undefined) {
-        json.book.detail = await getBookJson(json.book.isbn);
+      if (!response.ok) {
+        return { text: await response.text() };
       }
-      return json;
+
+      let json = await response.json();
+      json.book.detail = await getBookJson(json.book.isbn);
+      return { text: 'success', book: json.book};
     } catch (error) {
       console.error(error);
-      return { server_response: 'サーバーエラーが発生しました。' };
+      return { text: 'server error' };
     }
   },
 
@@ -88,10 +101,14 @@ const CallAPIRapper = {
         },
         body: JSON.stringify(send_data),
       });
-      return await response.json();
+      if (!response.ok) {
+        return { text: await response.text() };
+      }
+
+      return { text: 'success'};
     } catch (error) {
       console.error(error);
-      return { server_response: 'サーバーエラーが発生しました。' };
+      return { text: 'server error' };
     }
   },
 
@@ -109,10 +126,14 @@ const CallAPIRapper = {
         },
         body: JSON.stringify(send_data),
       });
-      return await response.json();
+      if (!response.ok) {
+        return { text: await response.text() };
+      }
+
+      return { text: 'success' };
     } catch (error) {
       console.error(error);
-      return { server_response: 'サーバーエラーが発生しました。' };
+      return { text: 'server error' };
     }
   },
 
@@ -121,10 +142,14 @@ const CallAPIRapper = {
       const response = await fetch(`/api/get_user_id`, {
         method: 'GET',
       })
-      return await response.json();
+      if(!response.ok){
+        return { text: await response.text() };
+      }
+      const json = await response.json();
+      return { text: 'success',user_id: json.user_id};
     } catch (error) {
       console.error(error);
-      return { server_response: 'サーバーエラーが発生しました。' };
+      return { text: 'server error' };
     }
   }
 }
