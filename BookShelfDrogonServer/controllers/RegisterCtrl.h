@@ -1,6 +1,5 @@
 #pragma once
 #include <drogon/HttpController.h>
-#include "../filters/ServerErrorChecker.h"
 
 class RegisterCtrl : public drogon::HttpController<RegisterCtrl>
 {
