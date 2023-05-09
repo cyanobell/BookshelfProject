@@ -8,16 +8,8 @@ class Register extends React.Component {
       login_state_text: '',
       password: '',
       name: '',
-      submit_able: true,
-      recaptchaResponse: null
+      submit_able: true
     };
-    grecaptcha.ready(() => {
-      grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', { action: 'login' }).then(token => {
-        let recaptchaResponse = document.getElementById('g-recaptcha-response');
-        recaptchaResponse.value = token;
-        this.setState({ recaptchaResponse: recaptchaResponse });
-      });
-    });
   }
 
   render() {
@@ -25,8 +17,11 @@ class Register extends React.Component {
       this.setState({ submit_able: false });
       e.preventDefault();
 
-      let send_data = { name: this.state.name, pass: this.state.password, recaptchaResponse: this.state.recaptchaResponse.value };
       try {
+        await new Promise(resolve => grecaptcha.ready(resolve));
+        const recaptchaToken = await grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', { action: 'register' });
+        let send_data = { name: this.state.name, pass: this.state.password , recaptchaToken: recaptchaToken};
+
         const response = await fetch('/register', {
           method: 'POST',
           headers: {
@@ -36,17 +31,23 @@ class Register extends React.Component {
           body: JSON.stringify(send_data),
         });
 
-        const json = await response.json();
-        console.log("res: " + json.text);
-        if (json.text === 'The name is already registered.') {
-          this.setState({ login_state_text: 'その名前はすでに登録されています' });
-        } else if (json.text === 'captchaFailed') {
-          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
-        } else if (json.text === 'The name or pass is empty.') {
-          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
-        } else if (json.text === 'success') {
+        if(response.ok){
           location.href = '/home';
+          return;
         }
+
+        const error_detail = await response.text();
+        console.log("res: " + error_detail);
+        if (error_detail === 'The name is already registered') {
+          this.setState({ login_state_text: 'その名前はすでに登録されています' });
+        } else if (error_detail === 'reCaptchaFailed') {
+          this.setState({ login_state_text: 'reCAPTCHAの認証に失敗しました' });
+        } else if (error_detail === 'The name or pass is empty') {
+          this.setState({ login_state_text: 'ユーザー名かパスワードが空です' });
+        } else {
+          this.setState({ login_state_text: 'サーバーエラーです 時間をおいて再接続してください' });
+        }
+
       } catch (error) {
         console.error('Error:', error);
       }

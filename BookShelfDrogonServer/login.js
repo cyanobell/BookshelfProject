@@ -7,25 +7,33 @@ class Login extends React.Component {
       login_state_text: '',
       password: '',
       name: '',
-      submit_able: true
+      submit_able: true,
+      recaptchaResponse: null
     };
+    grecaptcha.ready(() => {
+      grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
+        action: 'login'
+      }).then(token => {
+        let recaptchaResponse = document.getElementById('g-recaptcha-response');
+        recaptchaResponse.value = token;
+        this.setState({
+          recaptchaResponse: recaptchaResponse
+        });
+      });
+    });
   }
   render() {
     const handleSubmit = async e => {
       this.setState({
         submit_able: false
       });
+      let send_data = {
+        name: this.state.name,
+        pass: this.state.password,
+        recaptchaResponse: this.state.recaptchaResponse.value
+      };
       e.preventDefault();
       try {
-        await new Promise(resolve => grecaptcha.ready(resolve));
-        const recaptchaToken = await grecaptcha.execute('6LfNHdklAAAAALlnRMh61cbGSFmwb_UGj9qRPax1', {
-          action: 'login'
-        });
-        let send_data = {
-          name: this.state.name,
-          pass: this.state.password,
-          recaptchaToken: recaptchaToken
-        };
         const response = await fetch('/login', {
           method: 'POST',
           headers: {
@@ -34,27 +42,22 @@ class Login extends React.Component {
           },
           body: JSON.stringify(send_data)
         });
-        if (response.ok) {
-          location.href = '/home';
-          return;
-        }
-        const error_detail = await response.text();
-        if (error_detail === 'user or password is wrong') {
+        const json = await response.json();
+        console.log("res: " + json.text);
+        if (json.text === 'user or password is wrong') {
           this.setState({
             login_state_text: 'ログインに失敗しました'
           });
-        } else if (error_detail === 'reCaptchaFailed') {
+        } else if (json.text === 'captchaFailed') {
           this.setState({
             login_state_text: 'reCAPTCHAの認証に失敗しました'
           });
-        } else if (error_detail === 'The name or pass is empty') {
+        } else if (json.text === 'The name or pass is empty.') {
           this.setState({
             login_state_text: 'ユーザー名かパスワードが空です'
           });
-        } else {
-          this.setState({
-            login_state_text: 'サーバーエラーです 時間をおいて再接続してください'
-          });
+        } else if (json.text === 'success') {
+          location.href = '/home';
         }
       } catch (error) {
         console.error('エラーが発生しました', error);

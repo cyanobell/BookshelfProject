@@ -1,0 +1,16 @@
+#pragma once
+#include <drogon/HttpController.h>
+
+class LoginCtrl : public drogon::HttpController<LoginCtrl>
+{
+  constexpr static const char *html_filename = "../../bookshelf_app/login.html";
+
+public:
+  METHOD_LIST_BEGIN
+  ADD_METHOD_TO(LoginCtrl::get, "/login", drogon::Get, "ServerErrorChecker");
+  ADD_METHOD_TO(LoginCtrl::loginUser, "/login", drogon::Post, "ServerErrorChecker");
+  METHOD_LIST_END
+
+  void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+  void loginUser(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback) const;
+};

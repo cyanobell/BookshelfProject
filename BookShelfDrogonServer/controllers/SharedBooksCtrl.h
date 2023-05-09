@@ -1,0 +1,15 @@
+#pragma once
+#include <drogon/HttpController.h>
+
+class SharedBooksCtrl : public drogon::HttpController<SharedBooksCtrl>
+{
+  constexpr static const char *html_filename = "../../bookshelf_app/readOnly.html";
+
+public:
+  METHOD_LIST_BEGIN
+  ADD_METHOD_TO(SharedBooksCtrl::get, "shared_books/{user_id}", drogon::Get, "ServerErrorChecker");
+  ADD_METHOD_TO(SharedBooksCtrl::get, "shared_books/{user_id}", drogon::Get, "ServerErrorChecker");
+
+  METHOD_LIST_END
+  void get(const drogon::HttpRequestPtr &req, std::function<void(const drogon::HttpResponsePtr &)> &&callback, std::string user_id) const;
+};

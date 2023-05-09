@@ -15,14 +15,37 @@ class PlayCamera extends React.Component {
     this.handleCameraChange = this.handleCameraChange.bind(this);
   }
 
+  async getHighestResolutionCameraIndex(videoDevices) {
+    let highestResolutionCameraIndex = 0;
+    let highestResolution = 0;
+
+    for (let i = 0; i < videoDevices.length; i++) {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: videoDevices[i].deviceId }
+      });
+      const track = stream.getVideoTracks()[0];
+      const settings = track.getSettings();
+      const resolution = settings.width * settings.height;
+      if (resolution > highestResolution) {
+        highestResolutionCameraIndex = i;
+        highestResolution = resolution;
+      }
+      track.stop();
+    }
+    return highestResolutionCameraIndex;
+  }
+
   async componentDidMount() {
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoDevices = devices.filter(device => device.kind === "videoinput");
       this.setState({ devices: videoDevices });
 
+
+      const highestResolutionCameraIndex = await this.getHighestResolutionCameraIndex(videoDevices);
+      this.setState({ devices: videoDevices });
       if (videoDevices.length > 0) {
-        await this.startCamera(videoDevices[this.state.currentDeviceIndex].deviceId);
+        await this.startCamera(videoDevices[highestResolutionCameraIndex].deviceId);
       }
       this.captureImage();
     } catch (error) {
@@ -40,7 +63,7 @@ class PlayCamera extends React.Component {
       this.videoRef.current.srcObject = stream;
       await this.videoRef.current.play();
 
-      this.setState({ stream });
+      this.setState({ stream: stream });
     } catch (error) {
       console.error(error);
     }
@@ -63,7 +86,7 @@ class PlayCamera extends React.Component {
     this.setState({ currentDeviceIndex: nextDeviceIndex });
   }
 
-  captureImage = () => {
+  captureImage = async () => {
     if (
       !this.videoRef.current ||
       this.videoRef.current.videoWidth === 0 ||
@@ -77,8 +100,12 @@ class PlayCamera extends React.Component {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(this.videoRef.current, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    this.props.onReading(imageData);
-    window.requestAnimationFrame(this.captureImage);
+    await this.props.onReading(imageData);
+    try{
+      window.requestAnimationFrame(await this.captureImage());
+    }catch{
+      //カメラが止まった。　
+    }
   }
 
   render() {
@@ -113,6 +140,7 @@ class BarcodeReader extends React.Component {
     this.state = {
       imgSrc: null,
       readedIsbnValue: null,
+      beforeReadedIsbnValue: null,
     };
     this.video = { width: 640, height: 480 };
     this.videoHTML = <></>;
@@ -144,18 +172,32 @@ class BarcodeReader extends React.Component {
 
   async detectIsbnCode(imageData) {
     try {
+      let readedIsbn = undefined;
       let barcodes = await this.detectBarcodes(imageData);
       if (barcodes && barcodes.length > 0) {
         for (const barcode of barcodes) {
           if (checkIsValidISBN(barcode.rawValue)) {
-            this.setState({ readedIsbnValue: barcode.rawValue });
+            readedIsbn = barcode.rawValue;
           }
         }
       }
-      return null;
+      if (readedIsbn === undefined){
+        return;
+      }
+      
+      //精度上昇のため、2回連続して同じ数が読まれた時を結果とする。
+      if ( this.state.beforeReadedIsbnValue === readedIsbn) {
+        this.setState({ readedIsbnValue: readedIsbn });
+      } else {
+        this.setState({ beforeReadedIsbnValue: readedIsbn });
+        //0.1秒待つ
+        const sleep_time = 100;
+        await new Promise(resolve => setTimeout(resolve, sleep_time));
+      }
+      return;
     } catch (error) {
       console.error(error);
-      return null;
+      return;
     }
   }
 
