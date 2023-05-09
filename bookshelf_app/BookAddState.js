@@ -1,6 +1,6 @@
 'use strict';
 
-import { checkIsValidISBN, ShowBooks } from './bookUtil.js';
+import { checkIsValidISBN, getBookJson, ShowBooks } from './bookUtil.js';
 class PlayCamera extends React.Component {
   constructor(props) {
     super(props);
@@ -259,15 +259,17 @@ class IsbnInputArea extends React.Component {
       })
     }, "\u8AAD\u307F\u53D6\u308A\u4E2D\u6B62"), /*#__PURE__*/React.createElement("button", {
       type: "submit",
-      onClick: submitOnClick
-    }, "\u8FFD\u52A0"));
+      onClick: submitOnClick,
+      disabled: !checkIsValidISBN(inputingIsbn)
+    }, "\u8FFD\u52A0"), /*#__PURE__*/React.createElement("div", null, inputingIsbn.length === 13 && !checkIsValidISBN(inputingIsbn) && "ISBNコードに誤りがあります。", " "));
   }
 }
 class BookAddState extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      inputingIsbn: ""
+      inputingIsbn: '',
+      bookDetail: null
     };
   }
   render() {
@@ -275,25 +277,52 @@ class BookAddState extends React.Component {
       submitOnClick,
       books
     } = this.props;
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(IsbnInputArea, {
-      inputingIsbn: this.state.inputingIsbn,
-      submitOnClick: () => {
-        submitOnClick(this.state.inputingIsbn);
+    const isbnDetail = async input => {
+      if (checkIsValidISBN(input)) {
+        const book_detail = await getBookJson(input);
         this.setState({
-          inputingIsbn: ""
+          bookDetail: book_detail
         });
-      },
-      onBarcodeReadSuccess: barcode => {
+      } else {
         this.setState({
-          inputingIsbn: barcode
-        });
-      },
-      inputOnChange: e => {
-        this.setState({
-          inputingIsbn: e.target.value.replace(/[^0-9]/g, "")
+          bookDetail: null
         });
       }
-    }), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ShowBooks, {
+    };
+    const doSubmitOnClick = () => {
+      submitOnClick(this.state.inputingIsbn);
+      this.setState({
+        inputingIsbn: '',
+        bookDetail: null
+      });
+    };
+    const onBarcodeReadSuccess = barcode => {
+      this.setState({
+        inputingIsbn: barcode
+      });
+      isbnDetail(barcode);
+    };
+    const inputOnChange = e => {
+      let input = e.target.value.replace(/[^0-9]/g, '');
+      if (input.length > 13) {
+        input = input.slice(0, 13);
+      }
+      this.setState({
+        inputingIsbn: input
+      });
+      isbnDetail(input);
+    };
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(IsbnInputArea, {
+      inputingIsbn: this.state.inputingIsbn,
+      submitOnClick: doSubmitOnClick,
+      onBarcodeReadSuccess: onBarcodeReadSuccess,
+      inputOnChange: inputOnChange
+    }), this.state.bookDetail && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement("h3", null, "\u30D7\u30EC\u30D3\u30E5\u30FC"), /*#__PURE__*/React.createElement("h4", null, this.state.bookDetail.summary.title), /*#__PURE__*/React.createElement("img", {
+      src: this.state.bookDetail.summary.cover,
+      alt: "book_image",
+      width: "auto",
+      height: "150"
+    })), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ShowBooks, {
       books: books,
       bookButton: id => ""
     }));

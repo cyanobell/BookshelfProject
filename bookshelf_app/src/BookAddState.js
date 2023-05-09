@@ -1,5 +1,5 @@
 'use strict';
-import { checkIsValidISBN, ShowBooks } from './bookUtil.js';
+import { checkIsValidISBN, getBookJson, ShowBooks } from './bookUtil.js';
 
 class PlayCamera extends React.Component {
   constructor(props) {
@@ -101,9 +101,9 @@ class PlayCamera extends React.Component {
     ctx.drawImage(this.videoRef.current, 0, 0, canvas.width, canvas.height);
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     await this.props.onReading(imageData);
-    try{
+    try {
       window.requestAnimationFrame(await this.captureImage());
-    }catch{
+    } catch {
       //カメラが止まった。　
     }
   }
@@ -181,12 +181,12 @@ class BarcodeReader extends React.Component {
           }
         }
       }
-      if (readedIsbn === undefined){
+      if (readedIsbn === undefined) {
         return;
       }
-      
+
       //精度上昇のため、2回連続して同じ数が読まれた時を結果とする。
-      if ( this.state.beforeReadedIsbnValue === readedIsbn) {
+      if (this.state.beforeReadedIsbnValue === readedIsbn) {
         this.setState({ readedIsbnValue: readedIsbn });
       } else {
         this.setState({ beforeReadedIsbnValue: readedIsbn });
@@ -236,7 +236,8 @@ class IsbnInputArea extends React.Component {
         {showBarcodeReader && <BarcodeReader onReadSuccess={(code) => { onBarcodeReadSuccess(code); this.setState({ showBarcodeReader: false }) }} />}
         {!showBarcodeReader && <button type="button" onClick={() => this.setState({ showBarcodeReader: true })}>バーコード読み取り</button>}
         {showBarcodeReader && <button type="button" onClick={() => this.setState({ showBarcodeReader: false })}>読み取り中止</button>}
-        <button type="submit" onClick={submitOnClick}>追加</button>
+        <button type="submit" onClick={submitOnClick} disabled={!checkIsValidISBN(inputingIsbn)} >追加</button>
+        <div>{(inputingIsbn.length === 13 && !checkIsValidISBN(inputingIsbn)) && "ISBNコードに誤りがあります。"} </div>
       </div>
     );
   }
@@ -246,23 +247,60 @@ class BookAddState extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      inputingIsbn: "",
+      inputingIsbn: '',
+      bookDetail: null
     };
   }
   render() {
     const { submitOnClick, books } = this.props;
 
+    const isbnDetail = async (input) => {
+      if (checkIsValidISBN(input)) {
+        const book_detail = await getBookJson(input);
+        this.setState({ bookDetail: book_detail });
+      } else {
+        this.setState({ bookDetail: null });
+      }
+    }
+
+    const doSubmitOnClick = () => {
+      submitOnClick(this.state.inputingIsbn);
+      this.setState({ inputingIsbn: '', bookDetail: null });
+
+    }
+    const onBarcodeReadSuccess = (barcode) => {
+      this.setState({ inputingIsbn: barcode });
+      isbnDetail(barcode);
+    }
+
+    const inputOnChange = (e) => {
+      let input = e.target.value.replace(/[^0-9]/g, '');
+      if (input.length > 13) {
+        input = input.slice(0, 13);
+      }
+      this.setState({ inputingIsbn: input });
+      isbnDetail(input);
+    }
     return (
       <div>
         <hr></hr>
         <IsbnInputArea
           inputingIsbn={this.state.inputingIsbn}
-          submitOnClick={() => { submitOnClick(this.state.inputingIsbn); this.setState({ inputingIsbn: "" }); }}
-          onBarcodeReadSuccess={(barcode) => { this.setState({ inputingIsbn: barcode }); }}
-          inputOnChange={(e) => { this.setState({ inputingIsbn: e.target.value.replace(/[^0-9]/g, "") }) }}
+          submitOnClick={doSubmitOnClick}
+          onBarcodeReadSuccess={onBarcodeReadSuccess}
+          inputOnChange={inputOnChange}
         />
+        {this.state.bookDetail &&
+          <div>
+            <hr></hr>
+            <h3>プレビュー</h3>
+            <h4>{this.state.bookDetail.summary.title}</h4>
+            <img src={this.state.bookDetail.summary.cover} alt="book_image" width="auto" height="150" />
+          </div>
+        }
         <hr></hr>
         <ShowBooks books={books} bookButton={(id) => ""} />
+
       </div>
     );
   }
