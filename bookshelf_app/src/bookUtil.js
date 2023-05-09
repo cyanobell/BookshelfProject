@@ -1,6 +1,6 @@
 'use strict';
 export function checkIsValidISBN(isbn) {
-  if (isbn === null) {
+  if (isbn === undefined || isbn === null) {
     return false;
   }
   const isbn_str = isbn.toString();
