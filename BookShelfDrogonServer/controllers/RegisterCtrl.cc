@@ -1,6 +1,6 @@
 #include "RegisterCtrl.h"
 #include "bcrypt/BCrypt.hpp"
-#include "../utils/reCaptcha.h"
+#include "../utilities/reCaptcha.h"
 #include "JSON_VALUENAMES.h"
 
 using namespace drogon;
@@ -17,7 +17,7 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
   const auto session = req->session();
   const auto json_data = req->jsonObject();
 
-  if ((*json_data)[VALUE::USER::USER_NAME].isNull() || (*json_data)[VALUE::USER::PASS_WORD].isNull())
+  if ((*json_data)[VALUE::USER::USER_NAME].isNull() || (*json_data)[VALUE::USER::PASS_WORD].isNull() || (*json_data)[VALUE::USER::PASS_WORD].asString().empty() || (*json_data)[VALUE::USER::PASS_WORD].asString().empty())
   {
     LOG_INFO << "empty input";
     res->setStatusCode(k401Unauthorized);
@@ -53,7 +53,7 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
     if (result.size() == 1)
     {
       LOG_INFO << "register failed: " << name;
-      res->setStatusCode(k401Unauthorized);
+      res->setStatusCode(k409Conflict);
       res->setContentTypeCode(CT_TEXT_PLAIN);
       res->setBody("The name is already registered");
       callback(res);

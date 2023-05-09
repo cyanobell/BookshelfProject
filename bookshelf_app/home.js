@@ -31,9 +31,9 @@ class Bookshelf extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      server_response: '',
+      server_response: ' ',
       inputingIsbn: '',
-      books: [],
+      books: undefined,
       mode_state: 0
     };
     this.loadBooks();
@@ -275,6 +275,9 @@ class Bookshelf extends React.Component {
     }, "\u672C\u68DA\u3092\u5171\u6709"), /*#__PURE__*/React.createElement("button", {
       onClick: () => location.href = '/logout'
     }, "\u30ED\u30B0\u30A2\u30A6\u30C8")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: '35px'
+      },
       className: "ServerResponse"
     }, this.state.server_response), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement(ModeSelecter, {
       mode_state: this.state.mode_state,
@@ -294,7 +297,7 @@ class Bookshelf extends React.Component {
         mode_state: 3,
         server_response: ''
       })
-    }), modeStateHtml(this.state.mode_state));
+    }), /*#__PURE__*/React.createElement("div", null, modeStateHtml(this.state.mode_state)));
   }
 }
 const root = document.getElementById('book_shelf');

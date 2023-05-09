@@ -9,7 +9,7 @@ const CallAPIRapper = {
       });
 
       if (!response.ok) {
-        return { text: response.text() };
+        return { text: await response.text() };
       }
       const books = await response.json();
       for (const book of books) {
@@ -28,7 +28,7 @@ const CallAPIRapper = {
         method: 'GET',
       });
       if (!response.ok) {
-        return { text: response.text() };
+        return { text: await response.text() };
       }
       const books = await response.json();
       for (const book of books) {
@@ -47,10 +47,10 @@ const CallAPIRapper = {
         method: 'GET',
       });
       if (!response.ok) {
-        return { text: response.text() };
+        return { text: await response.text() };
       }
       const json = await response.json();
-      return { user_name: json.user_name, text: 'success' };
+      return {text: 'success' , user_name: json.user_name };
     } catch (error) {
       console.error(error);
       return [];

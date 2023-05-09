@@ -2,7 +2,7 @@
 #include <drogon/orm/DbClient.h>
 #include <drogon/orm/Exception.h>
 #include "bcrypt/BCrypt.hpp"
-#include "../utils/reCaptcha.h"
+#include "../utilities/reCaptcha.h"
 #include "JSON_VALUENAMES.h"
 
 using namespace drogon;
@@ -18,7 +18,7 @@ void LoginCtrl::loginUser(const HttpRequestPtr &req, std::function<void(const Ht
   const auto client_ptr = drogon::app().getDbClient();
   const auto json_data = req->jsonObject();
 
-  if ((*json_data)[VALUE::USER::USER_NAME].isNull() || (*json_data)[VALUE::USER::PASS_WORD].isNull())
+  if ((*json_data)[VALUE::USER::USER_NAME].isNull() || (*json_data)[VALUE::USER::PASS_WORD].isNull() || (*json_data)[VALUE::USER::PASS_WORD].asString().empty() || (*json_data)[VALUE::USER::PASS_WORD].asString().empty())
   {
     LOG_INFO << "empty input";
     res->setStatusCode(k401Unauthorized);

@@ -20,9 +20,9 @@ class Bookshelf extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      server_response: '',
+      server_response: ' ',
       inputingIsbn: '',
-      books: [],
+      books: undefined,
       mode_state: 0
     };
     this.loadBooks();
@@ -203,7 +203,7 @@ class Bookshelf extends React.Component {
           <button onClick={() => this.shareUrlCopyToCrip()} >本棚を共有</button>
           <button onClick={() => location.href = '/logout'}>ログアウト</button>
         </div>
-        <div className="ServerResponse">{this.state.server_response}</div>
+        <div style={{ minHeight: '35px' }} className="ServerResponse">{this.state.server_response}</div>
         <hr></hr>
         <ModeSelecter
           mode_state={this.state.mode_state}
@@ -212,8 +212,10 @@ class Bookshelf extends React.Component {
           onClickChange={() => this.setState({ mode_state: 2, server_response: '' })}
           onClickDelete={() => this.setState({ mode_state: 3, server_response: '' })}
         />
-        {modeStateHtml(this.state.mode_state)}
-      </div>
+        <div>
+          {modeStateHtml(this.state.mode_state)}
+        </div>
+      </div >
     );
   }
 }

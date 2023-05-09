@@ -1,4 +1,4 @@
 sudo cmake -DCMAKE_BUILD_TYPE=Debug ..
-make
+sudo make
 echo run server
 ./BookShelfDrogonServer 

@@ -10,7 +10,7 @@ export function checkIsValidISBN(isbn) {
     return false;
   }
   //現状古い規格は非対応
-  if (isbn_str[0] != '9' && isbn_str[1] != '7') {
+  if (isbn_str[0] != '9' || isbn_str[1] != '7') {
     return false;
   }
   const check_digit = parseInt(isbn_str.slice(-1)); // バーコードからチェックディジットを抽出する
@@ -60,6 +60,9 @@ export function ShowBooks({
   books,
   bookButton
 }) {
+  if (books === undefined) {
+    return /*#__PURE__*/React.createElement("div", null);
+  }
   if (books.length === 0) {
     return /*#__PURE__*/React.createElement("div", null, "\u672C\u304C\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002");
   }
