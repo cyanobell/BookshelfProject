@@ -118,8 +118,8 @@ void ApiCtrl::registerBook(const HttpRequestPtr &req, std::function<void(const H
                               user_id, isbn, 0);
   const int id = std::atoi(insert_id.front()["id"].c_str());
 
-  Json::Value result = makeBookJson(id, user_id, isbn, 0);
-
+  Json::Value result;
+  result[VALUE::BOOK::BOOK]= makeBookJson(id, user_id, isbn, 0);
   auto res = HttpResponse::newHttpJsonResponse(result);
   res->setStatusCode(k201Created);
   callback(res);
