@@ -11,6 +11,8 @@ namespace VALUE
     constexpr static const char *ID = "id";
     constexpr static const char *USER_NAME = "name";
     constexpr static const char *PASS_WORD = "pass";
+    constexpr static const char *SHAREING_SEED = "shareing_seed";
+    constexpr static const char *SHAREING_STATE = "shareing_state";
   }
   namespace BOOK
   {

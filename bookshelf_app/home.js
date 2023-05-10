@@ -197,7 +197,7 @@ class Bookshelf extends React.Component {
   };
   shareUrlCopyToCrip = async () => {
     try {
-      const json = await CallAPIRapper.getLoginingUserId();
+      const json = await CallAPIRapper.getLoginingUserShareingId();
       console.log('res: ' + json.text);
       switch (json.text) {
         case 'success':
@@ -226,6 +226,7 @@ class Bookshelf extends React.Component {
           return;
       }
     } catch (error) {
+      console.error(error);
       this.setState({
         server_response: 'サーバーエラーが発生しました。'
       });

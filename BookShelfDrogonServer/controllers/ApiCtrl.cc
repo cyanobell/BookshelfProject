@@ -1,6 +1,10 @@
 #include "ApiCtrl.h"
 #include "JSON_VALUENAMES.h"
 #include "../utilities/misc.h"
+#include "bcrypt/BCrypt.hpp"
+#include <string>
+#include <fstream>
+
 using namespace drogon;
 
 bool ApiCtrl::checkExistUserid(int user_id) const
@@ -54,6 +58,13 @@ Json::Value ApiCtrl::makeBooksJson(const orm::Result &orm_books) const
   return books;
 }
 
+std::optional<drogon::orm::Row> ApiCtrl::getUserToShareingId(const std::string &user_shareing_id) const
+{
+  const auto client_ptr = app().getDbClient();
+  const auto users = client_ptr->execSqlSync("SELECT * FROM users WHERE shareing_seed = $1",user_shareing_id);
+  return users.size() != 0 ? std::optional<drogon::orm::Row>(users.front()) : std::nullopt;
+}
+
 void ApiCtrl::getHaveBooks(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
   const auto session = req->session();
@@ -74,6 +85,21 @@ void ApiCtrl::getUserId(const HttpRequestPtr &req, std::function<void(const Http
 
   Json::Value result;
   result["user_id"] = session->get<int>(VALUE::SESSION::USER_ID);
+  auto res = HttpResponse::newHttpJsonResponse(result);
+  res->setStatusCode(k200OK);
+  callback(res);
+}
+
+void ApiCtrl::getUserShareingId(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
+{
+  const auto session = req->session();
+  const auto client_ptr = app().getDbClient();
+
+  const auto orm_users =
+      client_ptr->execSqlSync("SELECT * FROM users WHERE id = $1",
+                              session->get<int>(VALUE::SESSION::USER_ID));
+  Json::Value result;
+  result["user_shareing_id"] = orm_users.front()[VALUE::USER::SHAREING_SEED].c_str();
   auto res = HttpResponse::newHttpJsonResponse(result);
   res->setStatusCode(k200OK);
   callback(res);
@@ -103,7 +129,6 @@ void ApiCtrl::changeReadState(const HttpRequestPtr &req, std::function<void(cons
 {
   const auto session = req->session();
 
-
   const auto json_data = req->jsonObject();
   const Json::Value book = (*json_data)[VALUE::BOOK::BOOK];
   const int new_read_state = (*json_data)[VALUE::BOOK::NEW_READ_STATE].asInt();
@@ -132,7 +157,6 @@ void ApiCtrl::deleteBook(const HttpRequestPtr &req, std::function<void(const Htt
 {
   const auto session = req->session();
 
-
   const auto json_data = req->jsonObject();
   const Json::Value book = (*json_data)[VALUE::BOOK::BOOK];
   const auto client_ptr = app().getDbClient();
@@ -147,24 +171,17 @@ void ApiCtrl::deleteBook(const HttpRequestPtr &req, std::function<void(const Htt
   callback(res);
 }
 
-void ApiCtrl::getSharedBooks(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string user_id_str) const
+void ApiCtrl::getSharedBooksToShareingId(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string user_shareing_id) const
 {
-  if (!utilities::strIsNumber(user_id_str))
-  {
-    callback(newHttpResUserNotFound());
-  }
-
-  int user_id = std::stoi(user_id_str);
-  if (!checkExistUserid(user_id))
+  const auto user_orm = getUserToShareingId(user_shareing_id);
+  if (!user_orm)
   {
     callback(newHttpResUserNotFound());
     return;
   }
-
   const auto client_ptr = app().getDbClient();
   const auto orm_books =
-      client_ptr->execSqlSync("SELECT * FROM books WHERE user_id = $1",
-                              user_id);
+      client_ptr->execSqlSync("SELECT * FROM books WHERE user_id = $1", (*user_orm)[VALUE::USER::ID].c_str());
 
   Json::Value result = makeBooksJson(orm_books);
   auto res = HttpResponse::newHttpJsonResponse(result);
@@ -172,27 +189,20 @@ void ApiCtrl::getSharedBooks(const HttpRequestPtr &req, std::function<void(const
   callback(res);
 }
 
-void ApiCtrl::getUserNameToId(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string user_id_str) const
+void ApiCtrl::getUserNameToShareingId(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, std::string user_shareing_id) const
 {
+  const auto client_ptr = app().getDbClient();
+  const auto user_orm = getUserToShareingId(user_shareing_id);
 
-  if (!utilities::strIsNumber(user_id_str))
-  {
-    callback(newHttpResUserNotFound());
-  }
-
-  int user_id = std::stoi(user_id_str);
-  if (!checkExistUserid(user_id))
+  if (!user_orm)
   {
     callback(newHttpResUserNotFound());
     return;
   }
-
-  const auto client_ptr = app().getDbClient();
-  const auto user =
-      client_ptr->execSqlSync("SELECT * FROM users WHERE id = $1",
-                              user_id);
+  
+  std::string user_name = (*user_orm)[VALUE::USER::USER_NAME].c_str();
   Json::Value result;
-  result["user_name"] = user.front()[VALUE::USER::USER_NAME].c_str();
+  result["user_name"] = user_name;
   auto res = HttpResponse::newHttpJsonResponse(result);
   res->setStatusCode(k200OK);
   callback(res);
