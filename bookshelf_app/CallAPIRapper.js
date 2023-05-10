@@ -26,9 +26,9 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async loadBooksWithSharedId(shared_id) {
+  async loadBooksWithSharingId(shareing_id) {
     try {
-      const response = await fetch(`/api/get_shared_books/${shared_id}`, {
+      const response = await fetch(`/api/get_shared_books/${shareing_id}`, {
         method: 'GET'
       });
       if (!response.ok) {
@@ -49,9 +49,9 @@ const CallAPIRapper = {
       return [];
     }
   },
-  async loadUsernameWithSharedId(shared_id) {
+  async loadUsernameWithShareingId(shareing_id) {
     try {
-      const response = await fetch(`/api/get_user_name_to_id/${shared_id}`, {
+      const response = await fetch(`/api/get_user_name_to_id/${shareing_id}`, {
         method: 'GET'
       });
       if (!response.ok) {
@@ -187,6 +187,29 @@ const CallAPIRapper = {
       return {
         text: 'success',
         user_id: json.user_id
+      };
+    } catch (error) {
+      console.error(error);
+      return {
+        text: 'server error'
+      };
+    }
+  },
+  async getLoginingUserShareingId() {
+    try {
+      const response = await fetch(`/api/get_user_shareing_id`, {
+        method: 'GET'
+      });
+      if (!response.ok) {
+        return {
+          text: await response.text()
+        };
+      }
+      const json = await response.json();
+      console.log(json);
+      return {
+        text: 'success',
+        user_id: json.user_shareing_id
       };
     } catch (error) {
       console.error(error);

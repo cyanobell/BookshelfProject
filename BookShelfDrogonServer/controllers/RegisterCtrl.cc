@@ -2,8 +2,18 @@
 #include "bcrypt/BCrypt.hpp"
 #include "../utilities/reCaptcha.h"
 #include "JSON_VALUENAMES.h"
+#include <chrono>
 
 using namespace drogon;
+
+bool RegisterCtrl::checkExistUserShareingSeed(const std::string &shareing_seed) const
+{
+  const auto client_ptr = app().getDbClient();
+  const auto result = client_ptr->execSqlSync("SELECT * FROM users WHERE shareing_seed = $1 LIMIT 1",
+                                              shareing_seed);
+  return result.size() > 0;
+}
+
 void RegisterCtrl::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback) const
 {
   auto res = HttpResponse::newFileResponse(html_filename);
@@ -61,7 +71,18 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
     }
 
     std::string hashed_pass = BCrypt::generateHash(pass);
-    const auto insert_id = client_ptr->execSqlSync("INSERT INTO users(name, pass) VALUES ($1, $2) RETURNING id", name, hashed_pass);
+    std::string shareing_seed;
+    constexpr static const int BCRYPT_HEADDER = 7;
+    do
+    {
+      auto now = std::chrono::system_clock::now();
+      auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+      shareing_seed = BCrypt::generateHash(pass + name + std::to_string(ms));
+      std::replace(shareing_seed.begin(), shareing_seed.end(), '/', '-');
+      shareing_seed = shareing_seed.substr(BCRYPT_HEADDER);
+    } while (checkExistUserShareingSeed(shareing_seed));
+
+    const auto insert_id = client_ptr->execSqlSync("INSERT INTO users(name, pass, shareing_seed) VALUES ($1, $2, $3) RETURNING id", name, hashed_pass, shareing_seed);
     LOG_DEBUG << "register success: " << name;
     session->clear();
     session->changeSessionIdToClient();

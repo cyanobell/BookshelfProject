@@ -4,6 +4,7 @@
 class RegisterCtrl : public drogon::HttpController<RegisterCtrl>
 {
   constexpr static const char *html_filename = "../../bookshelf_app/register.html";
+  bool checkExistUserShareingSeed(const std::string& shareing_seed) const;
 
 public:
   METHOD_LIST_BEGIN

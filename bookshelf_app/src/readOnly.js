@@ -16,11 +16,11 @@ class Bookshelf extends React.Component {
     const path = window.location.pathname;
     const shared_id = path.split('/')[2];
     try {
-      const user_name_json = await CallAPIRapper.loadUsernameWithSharedId(shared_id);
+      const user_name_json = await CallAPIRapper.loadUsernameWithShareingId(shared_id);
       console.log('res: ' + user_name_json.text);
       switch (user_name_json.text) {
         case 'success':
-          const book_json = await CallAPIRapper.loadBooksWithSharedId(shared_id);
+          const book_json = await CallAPIRapper.loadBooksWithSharingId(shared_id);
           this.setState({ books: book_json.books });
           this.setState({ titleText: user_name_json.user_name + 'の本棚' });
           this.setState({ isBooksShow: user_name_json.user_name + 'の本棚' });
