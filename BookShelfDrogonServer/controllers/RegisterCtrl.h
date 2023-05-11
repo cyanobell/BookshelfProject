@@ -4,7 +4,12 @@
 class RegisterCtrl : public drogon::HttpController<RegisterCtrl>
 {
   constexpr static const char *html_filename = "../../bookshelf_app/register.html";
-  bool checkExistUserShareingSeed(const std::string& shareing_seed) const;
+
+  constexpr static const int NAME_MIN_LENGTH = 4;
+  constexpr static const int NAME_MAX_LENGTH = 50;
+  constexpr static const int PASS_MIN_LENGTH = 4;
+  constexpr static const int PASS_MAX_LENGTH = 50;
+  bool checkExistUserShareingSeed(const std::string &shareing_seed) const;
 
 public:
   METHOD_LIST_BEGIN

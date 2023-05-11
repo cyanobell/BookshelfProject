@@ -1,6 +1,7 @@
 #include "RegisterCtrl.h"
 #include "bcrypt/BCrypt.hpp"
 #include "../utilities/reCaptcha.h"
+#include "../utilities/misc.h"
 #include "JSON_VALUENAMES.h"
 #include <chrono>
 
@@ -36,9 +37,19 @@ void RegisterCtrl::registerUser(const HttpRequestPtr &req, std::function<void(co
     callback(res);
     return;
   }
-
   const std::string name = (*json_data)[VALUE::USER::USER_NAME].asString();
   const std::string pass = (*json_data)[VALUE::USER::PASS_WORD].asString();
+
+  if ((name.length() < NAME_MIN_LENGTH || name.length() > NAME_MAX_LENGTH) 
+    || (pass.length() < PASS_MIN_LENGTH || pass.length() > PASS_MAX_LENGTH))
+  {
+    LOG_INFO << "input is wrong format";
+    res->setStatusCode(k401Unauthorized);
+    res->setContentTypeCode(CT_TEXT_PLAIN);
+    res->setBody("input is wrong format");
+    callback(res);
+    return;
+  }
 
   bool isRecaptchaSuccess = false;
   if (!(*json_data)["recaptchaToken"].isNull())
