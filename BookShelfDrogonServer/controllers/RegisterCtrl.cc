@@ -1,7 +1,6 @@
 #include "RegisterCtrl.h"
 #include "bcrypt/BCrypt.hpp"
 #include "../utilities/reCaptcha.h"
-#include "../utilities/misc.h"
 #include "JSON_VALUENAMES.h"
 #include <chrono>
 
