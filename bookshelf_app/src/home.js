@@ -172,7 +172,9 @@ class Bookshelf extends React.Component {
         case 0:
           return (
             <BookShowState
+              detailOnClick={index => { }}
               books={this.state.books}
+              addHtml={<></>}
             />);
         case 1:
           return (
@@ -184,7 +186,7 @@ class Bookshelf extends React.Component {
         case 2:
           return (<BookReadingChangeState
             books={this.state.books}
-            changeReadState={(index) => {
+            changeReadState={index => {
               let read_state = this.state.books[index].read_state;
               let new_read_state = read_state < 2 ? read_state + 1 : 0;
               this.changeBookReadState(index, new_read_state);
@@ -193,7 +195,7 @@ class Bookshelf extends React.Component {
         case 3:
           return (<BookDeleteState
             books={this.state.books}
-            deleteBook={(index) => { this.deleteBook(index) }}
+            deleteBook={index => { this.deleteBook(index) }}
           />);
       }
     }
@@ -213,6 +215,7 @@ class Bookshelf extends React.Component {
           onClickChange={() => this.setState({ mode_state: 2, server_response: '' })}
           onClickDelete={() => this.setState({ mode_state: 3, server_response: '' })}
         />
+        <hr></hr>
         <div>
           {modeStateHtml(this.state.mode_state)}
         </div>

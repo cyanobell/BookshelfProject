@@ -237,7 +237,9 @@ class Bookshelf extends React.Component {
       switch (mode_state) {
         case 0:
           return /*#__PURE__*/React.createElement(BookShowState, {
-            books: this.state.books
+            detailOnClick: index => {},
+            books: this.state.books,
+            addHtml: /*#__PURE__*/React.createElement(React.Fragment, null)
           });
         case 1:
           return /*#__PURE__*/React.createElement(BookAddState, {
@@ -298,7 +300,7 @@ class Bookshelf extends React.Component {
         mode_state: 3,
         server_response: ''
       })
-    }), /*#__PURE__*/React.createElement("div", null, modeStateHtml(this.state.mode_state)));
+    }), /*#__PURE__*/React.createElement("hr", null), /*#__PURE__*/React.createElement("div", null, modeStateHtml(this.state.mode_state)));
   }
 }
 const root = document.getElementById('book_shelf');
