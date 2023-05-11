@@ -8,7 +8,8 @@ class Bookshelf extends React.Component {
     this.state = {
       books: undefined,
       titleText: '',
-      isBooksShow: false
+      isBooksShow: false,
+      selectedIndex: undefined
     };
   }
   async componentDidMount() {
@@ -21,21 +22,17 @@ class Bookshelf extends React.Component {
         case 'success':
           const book_json = await CallAPIRapper.loadBooksWithSharingId(shared_id);
           this.setState({
-            books: book_json.books
+            books: book_json.books,
+            titleText: `${user_name_json.user_name}の本棚`,
+            isBooksShow: true
           });
-          this.setState({
-            titleText: user_name_json.user_name + 'の本棚'
-          });
-          this.setState({
-            isBooksShow: user_name_json.user_name + 'の本棚'
-          });
-          document.title = '技術書籍in本棚サイト-' + user_name_json.user_name + 'の本棚';
+          document.title = `技術書籍in本棚サイト-${user_name_json.user_name}の本棚`;
           return;
         case 'user id is not found':
           this.setState({
             titleText: 'ユーザーが見つかりませんでした。'
           });
-          document.title = '技術書籍in本棚サイト-' + 'ユーザーが見つかりませんでした。';
+          document.title = '技術書籍in本棚サイト-ユーザーが見つかりませんでした。';
           return;
         default:
           this.setState({
@@ -47,13 +44,44 @@ class Bookshelf extends React.Component {
       console.error(error);
     }
   }
+  detailOnClick = async index => {
+    this.setState({
+      selectedIndex: index
+    });
+  };
+  getBookSearchAmazonURL = () => {
+    if (this.state.selectedIndex === undefined || this.state.books === undefined) {
+      return '';
+    }
+    const book = this.state.books[this.state.selectedIndex];
+    const isbn_str = book.isbn.toString();
+    let title = '';
+    if (book.detail && book.detail.summary) {
+      title = book.detail.summary.title;
+    }
+    return `https://www.amazon.co.jp/s?k=${title}+${isbn_str.substring(0, 3)}-${isbn_str.substring(3)}`;
+  };
+  bookSearchAmazonButton = () => {
+    const amazonUrl = this.getBookSearchAmazonURL();
+    if (amazonUrl === '') {
+      return /*#__PURE__*/React.createElement(React.Fragment, null);
+    }
+    return /*#__PURE__*/React.createElement("a", {
+      className: "button",
+      href: amazonUrl,
+      target: "_blank",
+      rel: "noopener noreferrer"
+    }, "amazon\u3067\u691C\u7D22");
+  };
   render() {
     return /*#__PURE__*/React.createElement("div", {
       className: "Bookshelf"
     }, /*#__PURE__*/React.createElement("h1", null, this.state.titleText, " "), /*#__PURE__*/React.createElement("div", {
       className: "ServerResponse"
-    }, this.state.server_response), this.state.isBooksShow && /*#__PURE__*/React.createElement(BookShowState, {
-      books: this.state.books
+    }, this.state.server_response), /*#__PURE__*/React.createElement("hr", null), this.state.isBooksShow !== undefined && /*#__PURE__*/React.createElement(BookShowState, {
+      books: this.state.books,
+      detailOnClick: this.detailOnClick,
+      addHtml: this.bookSearchAmazonButton()
     }));
   }
 }
