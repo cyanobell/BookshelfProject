@@ -55,11 +55,7 @@ class Bookshelf extends React.Component {
     }
     const book = this.state.books[this.state.selectedIndex];
     const isbn_str = book.isbn.toString();
-    let title = '';
-    if (book.detail && book.detail.summary) {
-      title = book.detail.summary.title;
-    }
-    return `https://www.amazon.co.jp/s?k=${title}+${isbn_str.substring(0, 3)}-${isbn_str.substring(3)}`;
+    return `https://www.amazon.co.jp/s?k=${isbn_str.substring(0, 3)}-${isbn_str.substring(3)}`;
   };
   bookSearchAmazonButton = () => {
     const amazonUrl = this.getBookSearchAmazonURL();
