@@ -43,6 +43,11 @@ class Bookshelf extends React.Component {
   }
 
   detailOnClick = async (index) => {
+    const scrollToOptions = {
+      top: 0, 
+      behavior: 'smooth' 
+    };
+    window.scrollTo(scrollToOptions);
     this.setState({ selectedIndex: index });
   }
 

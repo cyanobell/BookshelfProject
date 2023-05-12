@@ -172,7 +172,13 @@ class Bookshelf extends React.Component {
         case 0:
           return (
             <BookShowState
-              detailOnClick={index => { }}
+              detailOnClick={index => {
+                const scrollToOptions = {
+                  top: 0, 
+                  behavior: 'smooth' 
+                };
+                window.scrollTo(scrollToOptions);
+              }}
               books={this.state.books}
               addHtml={<></>}
             />);

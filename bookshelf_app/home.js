@@ -237,7 +237,13 @@ class Bookshelf extends React.Component {
       switch (mode_state) {
         case 0:
           return /*#__PURE__*/React.createElement(BookShowState, {
-            detailOnClick: index => {},
+            detailOnClick: index => {
+              const scrollToOptions = {
+                top: 0,
+                behavior: 'smooth'
+              };
+              window.scrollTo(scrollToOptions);
+            },
             books: this.state.books,
             addHtml: /*#__PURE__*/React.createElement(React.Fragment, null)
           });
