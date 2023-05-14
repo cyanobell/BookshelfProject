@@ -71,7 +71,7 @@ class Login extends React.Component {
     const name_max_length = 50;
     const pass_min_length = 4;
     const pass_max_length = 50;
-    if (this.state.name.length < name_min_length && this.state.name.length > name_max_length && this.state.password.length < pass_min_length && this.state.password.length > pass_max_length) {
+    if (this.state.name.length < name_min_length || this.state.name.length > name_max_length || this.state.password.length < pass_min_length || this.state.password.length > pass_max_length) {
       return false;
     }
     return !this.state.server_response_waiting;
