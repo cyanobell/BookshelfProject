@@ -1,6 +1,6 @@
 'use strict';
 export function checkIsValidISBN(isbn) {
-  if (isbn === null) {
+  if (!isbn) {
     return false;
   }
   const isbn_str = isbn.toString();
@@ -9,7 +9,7 @@ export function checkIsValidISBN(isbn) {
     return false;
   }
   //現状古い規格は非対応
-  if (isbn_str[0] != '9' && isbn_str[1] != '7') {
+  if (isbn_str[0] != '9' || isbn_str[1] != '7') {
     return false;
   }
   const check_digit = parseInt(isbn_str.slice(-1)); // バーコードからチェックディジットを抽出する
@@ -34,6 +34,7 @@ export function checkIsValidISBN(isbn) {
 }
 
 export async function getBookJson(isbn) {
+
   const url = "https://api.openbd.jp/v1/get?isbn=" + isbn;
   try {
     const response = await fetch(url);
@@ -50,6 +51,9 @@ export async function getBookJson(isbn) {
 }
 
 export function ShowBooks({ books, bookButton }) {
+  if(books === undefined ){
+    return <div></div>;
+  }
   if (books.length === 0) {
     return <div>本が登録されていません。</div>;
   }

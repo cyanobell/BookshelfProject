@@ -20,9 +20,9 @@ class Bookshelf extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      server_response: '',
+      server_response: ' ',
       inputingIsbn: '',
-      books: [],
+      books: undefined,
       mode_state: 0
     };
     this.loadBooks();
@@ -30,32 +30,52 @@ class Bookshelf extends React.Component {
 
   loadBooks = async () => {
     try {
-      const books = await CallAPIRapper.loadBooks();
-      this.setState({ books: books });
+      const json = await CallAPIRapper.loadBooks();
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          this.setState({ books: json.books });
+          return;
+        case 'user is not logined':
+          this.setState({ server_response: 'セッション切れです。再ログインしてください。' });
+          return;
+        default:
+          this.setState({ server_response: 'サーバーエラーが発生しました。' });
+          return;
+      }
     } catch (error) {
       console.error(error);
+      this.setState({ server_response: 'サーバーエラーが発生しました。' });
     }
   }
 
   registerNewBook = async (inputingIsbn) => {
+    if (inputingIsbn.length === 0) {
+      console.log('res: empty');
+      this.setState({ server_response: '入力欄が空です。' });
+      return;
+    }
     try {
-      if (inputingIsbn.length === 0) {
-        this.setState({ server_response: '入力欄が空です。' });
-        return;
-      }
-
       const json = await CallAPIRapper.registerNewIsbn(inputingIsbn);
-      console.log("res: " + json.text);
-      if (json.text === 'success') {
-        this.setState({ server_response: '登録できました！' });
-        this.setState({ inputingIsbn: '' });
-        this.setState({ books: this.state.books.concat([json.book]) });
-      } else if (json.text === 'already registered') {
-        this.setState({ server_response: 'その本はすでに登録されています。' });
-      } else if (json.text === 'isbn is too old or wrong.') {
-        this.setState({ server_response: 'ISBNコードが間違っているか、対応していない形式です。' });
-      } else {
-        this.setState({ server_response: 'サーバーエラーです。登録できませんでした。' });
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          this.setState({ server_response: '登録できました！' });
+          this.setState({ inputingIsbn: '' });
+          this.setState({ books: this.state.books.concat([json.book]) });
+          return;
+        case 'user is not logined':
+          this.setState({ server_response: 'セッション切れです。再ログインしてください。' });
+          return;
+        case 'isbn is too old or wrong':
+          this.setState({ server_response: 'ISBNコードが間違っているか、対応していない形式です。' });
+          return;
+        case 'book is already exist':
+          this.setState({ server_response: 'その本はすでに登録されています。' });
+          return;
+        default:
+          this.setState({ server_response: 'サーバーエラーが発生しました。' });
+          return;
       }
     } catch (error) {
       console.error(error);
@@ -66,16 +86,22 @@ class Bookshelf extends React.Component {
   changeBookReadState = async (index, new_read_state) => {
     try {
       const json = await CallAPIRapper.changeBookReadState(this.state.books[index], new_read_state);
-      console.log("res: " + json.text);
-      if (json.text === 'success') {
-        this.setState({ server_response: '変更できました！' });
-        this.setState({ inputingIsbn: '' });
-        const { books } = this.state;
-        const newBooks = [...books];
-        newBooks[index] = { ...books[index], read_state: new_read_state };
-        this.setState({ books: newBooks });
-      } else {
-        this.setState({ server_response: 'サーバーエラーです。変更できませんでした。' });
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          this.setState({ server_response: '変更できました！' });
+          this.setState({ inputingIsbn: '' });
+          const { books } = this.state;
+          const newBooks = [...books];
+          newBooks[index] = { ...books[index], read_state: new_read_state };
+          this.setState({ books: newBooks });
+          return;
+        case 'user is not logined':
+          this.setState({ server_response: 'セッション切れです。再ログインしてください。' });
+          return;
+        default:
+          this.setState({ server_response: 'サーバーエラーが発生しました。' });
+          return;
       }
     } catch (error) {
       console.error(error);
@@ -86,14 +112,20 @@ class Bookshelf extends React.Component {
   deleteBook = async (index) => {
     try {
       const json = await CallAPIRapper.deleteBook(this.state.books[index]);
-      console.log("res: " + json.text);
-      if (json.text === 'success') {
-        this.setState({ server_response: this.state.books[index].detail.summary.title + ' を削除しました。' });
-        this.setState({
-          books: this.state.books.filter((book, findex) => findex !== index),
-        });
-      } else {
-        this.setState({ server_response: 'サーバーエラーです。削除できませんでした。' });
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          this.setState({ server_response: this.state.books[index].detail.summary.title + ' を削除しました。' });
+          this.setState({
+            books: this.state.books.filter((book, findex) => findex !== index),
+          });
+          return;
+        case 'user is not logined':
+          this.setState({ server_response: 'セッション切れです。再ログインしてください。' });
+          return;
+        default:
+          this.setState({ server_response: 'サーバーエラーが発生しました。' });
+          return;
       }
     } catch (error) {
       console.error(error);
@@ -103,19 +135,30 @@ class Bookshelf extends React.Component {
 
   shareUrlCopyToCrip = async () => {
     try {
-
-      const json = await CallAPIRapper.getLoginingUserId();
-      const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
-      navigator.clipboard.writeText(shareUrl).then(
-        () => {
-          console.log(shareUrl + " was copyed");
-          this.setState({ server_response: 'クリップボードに共有用URLをコピーしました。' });
-        },
-        () => {
-          console.log(shareUrl + " :can not copy to clipboard");
-          this.setState({ server_response: 'URL: ' + shareUrl });
-        });
+      const json = await CallAPIRapper.getLoginingUserShareingId();
+      console.log('res: ' + json.text);
+      switch (json.text) {
+        case 'success':
+          const shareUrl = `${window.location.origin}/shared_books/${json.user_id}`;
+          navigator.clipboard.writeText(shareUrl).then(
+            () => {
+              console.log(shareUrl + " was copyed");
+              this.setState({ server_response: 'クリップボードに共有用URLをコピーしました。' });
+            },
+            () => {
+              console.log(shareUrl + " :can not copy to clipboard");
+              this.setState({ server_response: 'クリップボードにアクセスできませんでした URL: ' + shareUrl });
+            });
+          return;
+        case 'user is not logined':
+          this.setState({ server_response: 'セッション切れです。再ログインしてください。' });
+          return;
+        default:
+          this.setState({ server_response: 'サーバーエラーが発生しました。' });
+          return;
+      }
     } catch (error) {
+      console.error(error);
       this.setState({ server_response: 'サーバーエラーが発生しました。' });
     }
   }
@@ -126,7 +169,15 @@ class Bookshelf extends React.Component {
         case 0:
           return (
             <BookShowState
+              detailOnClick={index => {
+                const scrollToOptions = {
+                  top: 0, 
+                  behavior: 'smooth' 
+                };
+                window.scrollTo(scrollToOptions);
+              }}
               books={this.state.books}
+              addHtml={<></>}
             />);
         case 1:
           return (
@@ -138,7 +189,7 @@ class Bookshelf extends React.Component {
         case 2:
           return (<BookReadingChangeState
             books={this.state.books}
-            changeReadState={(index) => {
+            changeReadState={index => {
               let read_state = this.state.books[index].read_state;
               let new_read_state = read_state < 2 ? read_state + 1 : 0;
               this.changeBookReadState(index, new_read_state);
@@ -147,7 +198,7 @@ class Bookshelf extends React.Component {
         case 3:
           return (<BookDeleteState
             books={this.state.books}
-            deleteBook={(index) => { this.deleteBook(index) }}
+            deleteBook={index => { this.deleteBook(index) }}
           />);
       }
     }
@@ -158,7 +209,7 @@ class Bookshelf extends React.Component {
           <button onClick={() => this.shareUrlCopyToCrip()} >本棚を共有</button>
           <button onClick={() => location.href = '/logout'}>ログアウト</button>
         </div>
-        <div className="ServerResponse">{this.state.server_response}</div>
+        <div style={{ minHeight: '35px' }} className="ServerResponse">{this.state.server_response}</div>
         <hr></hr>
         <ModeSelecter
           mode_state={this.state.mode_state}
@@ -167,8 +218,11 @@ class Bookshelf extends React.Component {
           onClickChange={() => this.setState({ mode_state: 2, server_response: '' })}
           onClickDelete={() => this.setState({ mode_state: 3, server_response: '' })}
         />
-        {modeStateHtml(this.state.mode_state)}
-      </div>
+        <hr></hr>
+        <div>
+          {modeStateHtml(this.state.mode_state)}
+        </div>
+      </div >
     );
   }
 }

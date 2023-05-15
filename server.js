@@ -104,6 +104,7 @@ const logoutRoutes = require('./routes/logout');
 const homeRoutes = require('./routes/home');
 const sharedBooksRoutes = require('./routes/sharedBooks');
 const apiRoutes = require('./routes/api');
+const errorPageRoutes = require('./routes/errorPage');
 
 app.use('/', indexRoutes);
 app.use('/register', registerRoutes);
@@ -112,6 +113,7 @@ app.use('/logout', logoutRoutes);
 app.use('/home', homeRoutes);
 app.use('/shared_books', sharedBooksRoutes);
 app.use('/api', apiRoutes);
+app.use('/', errorPageRoutes);
 
 https.createServer(https_options, app).listen(port, function () {
   console.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
