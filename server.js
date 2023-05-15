@@ -117,9 +117,6 @@ app.get('/profile', requiresAuth(), (req, res) => {
 
 
 const authCallbackRoutes = require('./routes/authCallback');
-const registerRoutes = require('./routes/register');
-const loginRoutes = require('./routes/login');
-const logoutRoutes = require('./routes/logout');
 const homeRoutes = require('./routes/home');
 const sharedBooksRoutes = require('./routes/sharedBooks');
 const apiRoutes = require('./routes/api');
