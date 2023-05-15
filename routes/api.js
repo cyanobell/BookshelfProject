@@ -1,17 +1,15 @@
 'use strict';
 const express = require('express');
 const router = express.Router();
-const isLoginFilter = require('../filter/isLoginFilter');
+const {requiresAuth} = require('express-openid-connect');
 
-router.use('/get_have_books', isLoginFilter);
-router.get('/get_have_books', async (req, res) => {
+router.get('/get_have_books', requiresAuth(), async (req, res) => {
   const connection = req.app.locals.connection;
-  const user_id = req.session.user_id;
+  const user_id = req.oidc.user.sub;
   try {
     const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [user_id]);
     res.status(200).json(books);
   } catch (error) {
-    console.error("asdf");
     console.error(error.message);
     res.status(500).send('server error');
   }
@@ -27,7 +25,7 @@ router.get('/get_shared_books/:shared_id', async (req, res) => {
       res.status(404).send('user id is not found');
       return;
     }
-    const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [users[0].id]);
+    const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ?', [users[0].user_id]);
     res.status(200).json(books);
   } catch (error) {
     console.error(error.message);
@@ -52,9 +50,8 @@ router.get('/get_user_name_to_id/:shared_id', async (req, res) => {
   }
 });
 
-router.use('/get_user_id', isLoginFilter);
-router.get('/get_user_id', (req, res) => {
-  res.status(200).json({ user_id: req.session.user_id });
+router.get('/get_user_id', requiresAuth(), (req, res) => {
+  res.status(200).json({ user_id: user_id });
 });
 
 function checkIsValidISBN(isbn_str) {
@@ -87,10 +84,11 @@ function checkIsValidISBN(isbn_str) {
   }
 }
 
-router.use('/register_book', isLoginFilter);
-router.post('/register_book', async (req, res) => {
+router.post('/register_book', requiresAuth(), async (req, res) => {
   const connection = req.app.locals.connection;
   const { isbn } = req.body;
+  const user_id = req.oidc.user.sub;
+
   if (!checkIsValidISBN(isbn)) {
     console.log("isbn error: " + isbn);
     res.status(400).send('isbn is too old or wrong');
@@ -98,17 +96,17 @@ router.post('/register_book', async (req, res) => {
   }
 
   try {
-    const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ? AND isbn = ? LIMIT 1', [req.session.user_id, isbn]);
+    const books = await connection.queryAsync('SELECT * FROM books WHERE user_id = ? AND isbn = ? LIMIT 1', [user_id, isbn]);
     if (books.length !== 0) {
       res.status(409).send('book is already exist');
       console.log(isbn + ' is already registered');
     } else {
-      await connection.queryAsync("INSERT INTO books(user_id,isbn,read_state) VALUES (?, ?, 0)", [req.session.user_id, isbn]);
+      await connection.queryAsync("INSERT INTO books(user_id,isbn,read_state) VALUES (?, ?, 0)", [user_id, isbn]);
       const [lastInsert] = await connection.queryAsync("SELECT last_insert_id()");
       const lastInsertId = lastInsert['last_insert_id()'];
       res.status(201).json({
         id: lastInsertId,
-        user_id: req.session.user_id,
+        user_id: user_id,
         isbn: isbn,
         read_state: 0
       });
@@ -121,7 +119,7 @@ router.post('/register_book', async (req, res) => {
 });
 
 function checkEditPermission(book, req) {
-  return book.user_id === req.session.user_id;
+  return book.user_id === req.oidc.user.sub;
 }
 
 async function checkExistBook(book, connection) {
@@ -131,13 +129,13 @@ async function checkExistBook(book, connection) {
   return results.length === 1;
 }
 
-router.use('/change_read_state', isLoginFilter);
-router.post('/change_read_state', async (req, res) => {
+router.post('/change_read_state', requiresAuth(), async (req, res) => {
   const connection = req.app.locals.connection;
   const book = req.body.book;
   const new_read_state = req.body.new_read_state;
+
   if (!checkEditPermission(book, req)) {
-    console.log(`${req.session.user_id} try edit to ${book.user_id}`);
+    console.log(`${user_id} try edit to ${book.user_id}`);
     res.status(401).send('has not permission');
     return;
   }
@@ -164,13 +162,13 @@ router.post('/change_read_state', async (req, res) => {
   }
 });
 
-router.use('/delete_book', isLoginFilter);
-router.post('/delete_book', async (req, res) => {
+router.post('/delete_book', requiresAuth(), async (req, res) => {
   const connection = req.app.locals.connection;
   const book = req.body.book;
+  const user_id = req.oidc.user.sub;
 
   if (!checkEditPermission(book, req)) {
-    console.log(`${req.session.user_id} try edit to ${book.user_id}`);
+    console.log(`${user_id} try edit to ${book.user_id}`);
     res.status(401).send('has not permission');
     return;
   }
@@ -194,13 +192,11 @@ router.post('/delete_book', async (req, res) => {
   }
 });
 
-router.use('/get_user_shareing_id', isLoginFilter);
-router.get('/get_user_shareing_id', async (req, res) => {
+router.get('/get_user_shareing_id', requiresAuth(), async (req, res) => {
   const connection = req.app.locals.connection;
-  const { user_id } = req.session;
+  const user_id = req.oidc.user.sub;
   try {
-    const users = await connection.queryAsync('SELECT * FROM users WHERE id = ? LIMIT 1', [user_id]);
-
+    const users = await connection.queryAsync('SELECT * FROM users WHERE user_id = ? LIMIT 1', [user_id]);
     res.status(200).json({user_shareing_id: users[0].shareing_seed});
   } catch (error) {
     console.error(error.message);

@@ -17,7 +17,6 @@ router.get('/', (req, res) => {
 router.post('/', async (req, res) => {
   const connection = req.app.locals.connection;
   const { name, pass } = req.body;
-
   if (!name || !pass) {
     res.status(401).send('The name or pass is empty');
     return;
@@ -55,7 +54,6 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error("asdf");
     res.status(500).send('server error');
     console.error(error);
   }

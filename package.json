@@ -20,6 +20,7 @@
     "core-js": "^3.30.1",
     "express": "^4.18.2",
     "express-mysql-session": "^3.0.0",
+    "express-openid-connect": "^2.16.0",
     "express-session": "^1.17.3",
     "helmet": "^6.1.5",
     "mysql": "^2.18.1",

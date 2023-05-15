@@ -1,11 +1,14 @@
 'use strict';
 const express = require('express');
 const router = express.Router();
-const path = require('path');
 
-router.get('/', (req, res) => {
-  const crientDirectry = req.app.locals.crientDirectry;
-  res.sendFile(path.join(__dirname, '..', crientDirectry, 'index.html'));
+router.get('/', (req, res ,next) => {
+  if(req.oidc && req.oidc.isAuthenticated())
+  {
+    res.redirect('/auth_callback');
+    return;
+  }
+  next();
 });
 
 module.exports = router;
