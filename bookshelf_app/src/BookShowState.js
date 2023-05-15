@@ -5,10 +5,10 @@ class BookShowState extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      index: -1,
+      index: undefined
     };
   }
-  ShowBookDetail(bookDetail) {
+  showBookDetail(bookDetail) {
     let bookCollateralDetailHtml;
     if (bookDetail.onix) {
       bookCollateralDetailHtml = bookDetail.onix.CollateralDetail.TextContent.map((textContent, index) => (
@@ -16,34 +16,30 @@ class BookShowState extends React.Component {
       ));
     }
     return (<div>
+      <hr></hr>
       <h2>{bookDetail.summary.title}</h2>
       <img src={bookDetail.summary.cover} alt="book_image" width="300" height=" auto" />
       <p>{bookDetail.summary.author}</p>
       <div>{bookCollateralDetailHtml}</div>
-      <hr></hr>
     </div>);
   }
+
   render() {
-    let { books } = this.props;
-    let bookDetailHtml;
+    const { books, detailOnClick, addHtml } = this.props;
     const bookButton = (index) => {
-      return (<button onClick={() => this.setState({ index: index })} disabled={books[index].detail.onix === undefined} >詳細を見る</button>);
-    }
-    //詳細を見るボタンが押されたら、その本の詳細を表示　
-    if (this.state.index !== -1) {
-      bookDetailHtml = this.ShowBookDetail(books[this.state.index].detail);
+      return (<button onClick={() => { this.setState({ index: index }); detailOnClick(index); }} disabled={books[index].detail.onix === undefined} >詳細を見る</button>);
     }
     return (
       <div>
-        <hr></hr>
-        {bookDetailHtml}
+        <div>{this.state.index !== undefined && this.showBookDetail(books[this.state.index].detail)}</div>
+        <div>{addHtml}</div>
+        {this.state.index !== undefined && <hr></hr>}
         <ShowBooks
           books={books}
           bookButton={bookButton}
         />
       </div>
     );
-
   }
 };
 
