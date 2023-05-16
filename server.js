@@ -5,6 +5,7 @@ const util = require('util');
 const https = require('https');
 const express = require('express');
 const session = require('express-session');
+const Logger = require('./utils/Logger');
 
 const port = 3000;
 const saltRounds = 10;
@@ -58,10 +59,10 @@ const sessionConfig = {
 
 connection.connect((err) => {
   if (err) {
-    console.log('Error connecting to SQL: ' + err.stack);
+    Logger.log('Error connecting to SQL: ' + err.stack);
     return;
   }
-  console.log('Successfully connected to SQL.');
+  Logger.log('Successfully connected to SQL.');
 });
 connection.queryAsync = util.promisify(connection.query).bind(connection);
 
@@ -129,5 +130,5 @@ app.use('/api', apiRoutes);
 app.use('/', errorPageRoutes);
 
 https.createServer(https_options, app).listen(port, function () {
-  console.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
+  Logger.log('App listening on port ' + port + '! Go to https://localhost:' + port + '/')
 });

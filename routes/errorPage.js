@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const Logger = require('../utils/Logger');
 
 router.get('/*', (req, res) => {
   const crientDirectry = req.app.locals.crientDirectry;

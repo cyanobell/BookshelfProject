@@ -25,7 +25,8 @@
     "helmet": "^6.1.5",
     "mysql": "^2.18.1",
     "mysql2": "^3.2.4",
-    "regenerator-runtime": "^0.13.11"
+    "regenerator-runtime": "^0.13.11",
+    "winston": "^3.8.2"
   },
   "keywords": [],
   "description": ""
