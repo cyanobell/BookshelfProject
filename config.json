@@ -1,0 +1,7 @@
+{
+  "log":{
+    "level": "info",
+    "filename":"bookshelf.log",
+    "maxsize": 102400
+  }
+}
