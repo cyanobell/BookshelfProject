@@ -1,11 +1,9 @@
 'use strict';
-const helmet = require('helmet');
 const fs = require('fs');
-const express = require('express');
 const mysql = require('mysql');
 const util = require('util');
-const bodyParser = require('body-parser');
 const https = require('https');
+const express = require('express');
 const session = require('express-session');
 
 const port = 3000;
@@ -69,6 +67,7 @@ connection.queryAsync = util.promisify(connection.query).bind(connection);
 
 const app = express();
 
+const helmet = require('helmet');
 app.use(
   helmet.contentSecurityPolicy({
     directives: {
@@ -88,28 +87,42 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(__dirname + crientDirectry));
 app.use(session(sessionConfig));
 
+const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 if (app.get('env') === 'production') {
   app.set('trust proxy', 1)
   sess.cookie.secure = true
 }
 
+const { auth, requiresAuth} = require('express-openid-connect');
+const auth_config = {
+  authRequired: false,
+  auth0Logout: true,
+  secret: session_pass,
+  baseURL: `https://localhost:${port}`,
+  clientID: 'hBGAHxh3W9OZ5g3Bacdd3pdnJ9O85tnp',
+  issuerBaseURL: 'https://dev-w2keglqi7xsd3t3z.us.auth0.com'
+};
+
+app.use(auth(auth_config));
 const indexRoutes = require('./routes/index');
-const registerRoutes = require('./routes/register');
-const loginRoutes = require('./routes/login');
-const logoutRoutes = require('./routes/logout');
+app.use('/', indexRoutes);
+app.use(express.static(__dirname + crientDirectry));
+
+app.get('/profile', requiresAuth(), (req, res) => {
+  res.send(JSON.stringify(req.oidc.user, null, 2));
+});
+
+
+const authCallbackRoutes = require('./routes/authCallback');
 const homeRoutes = require('./routes/home');
 const sharedBooksRoutes = require('./routes/sharedBooks');
 const apiRoutes = require('./routes/api');
 const errorPageRoutes = require('./routes/errorPage');
 
-app.use('/', indexRoutes);
-app.use('/register', registerRoutes);
-app.use('/login', loginRoutes);
-app.use('/logout', logoutRoutes);
+app.use('/auth_callback', authCallbackRoutes);
 app.use('/home', homeRoutes);
 app.use('/shared_books', sharedBooksRoutes);
 app.use('/api', apiRoutes);
